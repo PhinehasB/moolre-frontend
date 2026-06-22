@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { SLIDES } from "@/utils/mock";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
 // Salary card component for Slide 1
 function SalaryCard() {
@@ -19,7 +20,8 @@ function SalaryCard() {
           className="h-full rounded-full"
           style={{
             width: "70%",
-            background: "linear-gradient(90deg, var(--color-spendable) 0%, var(--color-amber-400) 100%)",
+            background:
+              "linear-gradient(90deg, var(--color-spendable) 0%, var(--color-amber-400) 100%)",
           }}
         />
       </div>
@@ -45,40 +47,6 @@ function SalaryCard() {
   );
 }
 
-const SLIDES = [
-  {
-    type: "gradient",
-    tag: "SALARY, ALREADY SORTED",
-    title: (
-      <>
-        Pay your team.
-        <br />
-        Their bills sort
-        <br />
-        themselves.
-      </>
-    ),
-  },
-  {
-    type: "image",
-    image: "/assets/slide_office.png",
-    tag: "MOVE MONEY WITH TOTAL CONFIDENCE",
-    title: "Secure, compliant, and reliable financial infrastructure for modern teams.",
-  },
-  {
-    type: "image",
-    image: "/assets/slide_atm.png",
-    tag: "POWERING THE FUTURE OF DIGITAL PAYMENTS.",
-    title: "Connecting digital wallets to real-world, everyday human utility.",
-  },
-  {
-    type: "image",
-    image: "/assets/slide_building.png",
-    tag: "PAY YOUR TEAM IN ONE CLICK.",
-    title: "We handle the complexity so you can focus on building",
-  },
-];
-
 export default function AuthSlider() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -97,8 +65,9 @@ export default function AuthSlider() {
           return (
             <div
               key={index}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentIndex ? "opacity-100 z-0" : "opacity-0 -z-10"
-                }`}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                index === currentIndex ? "opacity-100 z-0" : "opacity-0 -z-10"
+              }`}
               style={{
                 background:
                   "linear-gradient(160deg, var(--color-green-600) 0%, var(--color-green-400) 40%, var(--color-amber-600) 100%)",
@@ -118,8 +87,9 @@ export default function AuthSlider() {
           return (
             <div
               key={index}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentIndex ? "opacity-100 z-0" : "opacity-0 -z-10"
-                }`}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                index === currentIndex ? "opacity-100 z-0" : "opacity-0 -z-10"
+              }`}
             >
               <Image
                 src={slide.image || ""}
@@ -131,7 +101,7 @@ export default function AuthSlider() {
               />
               {/* Gradients / Overlays for images */}
               <div className="absolute inset-0 bg-black/15 z-10 pointer-events-none" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent z-10 pointer-events-none" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/35 to-transparent z-10 pointer-events-none" />
             </div>
           );
         }
@@ -157,26 +127,32 @@ export default function AuthSlider() {
           return (
             <div
               key={index}
-              className={`w-full transition-all duration-700 ease-in-out ${index === currentIndex
-                ? "opacity-100 translate-y-0 relative"
-                : "opacity-0 translate-y-4 absolute inset-x-0 -bottom-12 pointer-events-none"
-                } ${isGradient
+              className={`w-full transition-all duration-700 ease-in-out ${
+                index === currentIndex
+                  ? "opacity-100 translate-y-0 relative"
+                  : "opacity-0 translate-y-4 absolute inset-x-0 bottom-0 pointer-events-none"
+              } ${
+                isGradient
                   ? "my-auto self-start text-left max-w-xl"
                   : "mt-auto self-end ml-auto text-left max-w-[85%] lg:max-w-[70%] pb-4"
-                }`}
+              }`}
             >
               <div>
                 <p
-                  className={`text-xs font-semibold tracking-[0.18em] uppercase mb-3 ${slide.type === "gradient" ? "text-white/60" : "text-white/75"
-                    }`}
+                  className={`text-xs font-semibold tracking-[0.18em] uppercase mb-3 ${
+                    slide.type === "gradient"
+                      ? "text-white/60"
+                      : "text-white/75"
+                  }`}
                 >
                   {slide.tag}
                 </p>
                 <h1
-                  className={`text-white tracking-tight ${slide.type === "gradient"
-                    ? "text-3xl sm:text-4xl font-bold leading-snug"
-                    : "text-2xl font-medium leading-[1.25]"
-                    }`}
+                  className={`text-white tracking-tight ${
+                    slide.type === "gradient"
+                      ? "text-3xl sm:text-4xl font-bold leading-snug"
+                      : "text-2xl font-medium leading-tight"
+                  }`}
                 >
                   {slide.title}
                 </h1>
@@ -194,7 +170,9 @@ export default function AuthSlider() {
       </div>
 
       {/* Footer */}
-      <p className="absolute bottom-16 left-12 z-20 text-white/40 text-xs">Powered by Moolre</p>
+      <p className="absolute bottom-12 mt-32 left-12 z-20 text-white/40 text-xs">
+        Powered by Moolre
+      </p>
     </div>
   );
 }

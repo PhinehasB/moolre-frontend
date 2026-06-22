@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
-import { signInSchema, type SignInValues } from "@/utils/validators";
 import { FieldError, inputCls } from "@/utils/form";
+import { signInSchema, type SignInValues } from "@/utils/validators";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 
 export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,13 +24,13 @@ export default function SignInPage() {
 
   const onSubmit = (data: SignInValues) => {
     // TODO: wire up auth
-    console.log("Sign in", data);
+    redirect("/dashboard");
   };
 
   return (
     <div className="w-full max-w-sm">
       {/* Header */}
-      <p className="text-green-600 text-xs font-semibold tracking-[0.16em] uppercase mb-2">
+      <p className="text-primary-600 text-xs font-semibold tracking-[0.16em] uppercase mb-2">
         Business Dashboard
       </p>
       <h2 className="text-gray-900 text-3xl font-bold mb-1.5">Welcome back</h2>
@@ -37,10 +38,17 @@ export default function SignInPage() {
         Sign in to manage payroll, your team, and your Moolre wallet.
       </p>
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+        className="flex flex-col gap-5"
+      >
         {/* Email */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="signin-email" className="text-gray-700 text-sm font-medium">
+          <label
+            htmlFor="signin-email"
+            className="text-gray-700 text-sm font-medium"
+          >
             Work email
           </label>
           <Input
@@ -57,7 +65,10 @@ export default function SignInPage() {
 
         {/* Password */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="signin-password" className="text-gray-700 text-sm font-medium">
+          <label
+            htmlFor="signin-password"
+            className="text-gray-700 text-sm font-medium"
+          >
             Password
           </label>
           <div className="relative">
@@ -76,7 +87,11 @@ export default function SignInPage() {
               onClick={() => setShowPassword((v) => !v)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-navy-400 hover:text-navy-600 transition-colors"
             >
-              {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              {showPassword ? (
+                <EyeOff className="size-4" />
+              ) : (
+                <Eye className="size-4" />
+              )}
             </button>
           </div>
           <FieldError message={errors.password?.message} />

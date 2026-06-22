@@ -1,10 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Eye, EyeOff, Mail } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -12,12 +8,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { companySchema, adminSchema, type CompanyValues, type AdminValues } from "@/utils/validators";
 import { FieldError, inputCls } from "@/utils/form";
 import { INDUSTRIES } from "@/utils/mock";
+import {
+  adminSchema,
+  companySchema,
+  type AdminValues,
+  type CompanyValues,
+} from "@/utils/validators";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft, Eye, EyeOff, Mail } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 
-// Shadcn industry dropdown (controlled by RHF Controller)
+// industry dropdown
 function IndustrySelect({
   value,
   onChange,
@@ -37,18 +42,19 @@ function IndustrySelect({
           data-placeholder:text-gray-400
           outline-none transition-colors
           data-[size=default]:h-auto
-          ${hasError
-            ? "border-red-400 focus:border-red-500 ring-2 ring-red-400/15"
-            : "border-gray-200 focus:border-green-600 focus:ring-2 focus:ring-green-600/15"
+          ${
+            hasError
+              ? "border-red-400 focus:border-red-500 ring-2 ring-red-400/15"
+              : "border-gray-200 focus:border-green-600 focus:ring-2 focus:ring-green-600/15"
           }
         `}
       >
         <SelectValue placeholder="Select…" />
       </SelectTrigger>
       <SelectContent>
-        {INDUSTRIES.map((ind) => (
-          <SelectItem key={ind} value={ind}>
-            {ind}
+        {INDUSTRIES.map((_idx) => (
+          <SelectItem key={_idx} value={_idx}>
+            {_idx}
           </SelectItem>
         ))}
       </SelectContent>
@@ -66,18 +72,14 @@ function StepProgress({ current, total }: { current: number; total: number }) {
           className={`h-1 flex-1 rounded-full transition-all duration-300 ${
             i < current ? "bg-green-600" : "bg-gray-200"
           }`}
-        />
+        /> 
       ))}
     </div>
   );
 }
 
 // Step 1: Company
-function StepCompany({
-  onNext,
-}: {
-  onNext: (data: CompanyValues) => void;
-}) {
+function StepCompany({ onNext }: { onNext: (data: CompanyValues) => void }) {
   const {
     register,
     handleSubmit,
@@ -92,20 +94,29 @@ function StepCompany({
   const industry = watch("industry");
 
   return (
-    <form onSubmit={handleSubmit(onNext)} noValidate className="w-full max-w-sm">
+    <form
+      onSubmit={handleSubmit(onNext)}
+      noValidate
+      className="w-full max-w-sm"
+    >
       <StepProgress current={1} total={3} />
 
       <p className="text-green-600 text-xs font-semibold tracking-[0.16em] uppercase mb-2">
         Step 1 of 3 &bull; Company
       </p>
-      <h2 className="text-gray-900 text-3xl font-bold mb-1.5">Create your company</h2>
+      <h2 className="text-gray-900 text-3xl font-bold mb-1.5">
+        Create your company
+      </h2>
       <p className="text-gray-500 text-sm mb-8 leading-relaxed">
         Sign in to manage payroll, your team, and your Moolre wallet.
       </p>
 
       {/* Company name */}
       <div className="flex flex-col gap-1.5 mb-4">
-        <label htmlFor="company-name" className="text-gray-700 text-sm font-medium">
+        <label
+          htmlFor="company-name"
+          className="text-gray-700 text-sm font-medium"
+        >
           Company name
         </label>
         <Input
@@ -139,7 +150,9 @@ function StepCompany({
           <label className="text-gray-700 text-sm font-medium">Industry</label>
           <IndustrySelect
             value={industry ?? ""}
-            onChange={(val) => setValue("industry", val, { shouldValidate: true })}
+            onChange={(val) =>
+              setValue("industry", val, { shouldValidate: true })
+            }
             hasError={!!errors.industry}
           />
           <FieldError message={errors.industry?.message} />
@@ -157,7 +170,10 @@ function StepCompany({
 
       <p className="mt-5 text-center text-sm text-gray-500">
         Already have an account?{" "}
-        <Link href="/signin" className="font-semibold text-green-600 hover:underline underline-offset-2">
+        <Link
+          href="/signin"
+          className="font-semibold text-green-600 hover:underline underline-offset-2"
+        >
           Sign in
         </Link>
       </p>
@@ -181,11 +197,21 @@ function StepAdmin({
     formState: { errors, isSubmitting },
   } = useForm<AdminValues>({
     resolver: zodResolver(adminSchema),
-    defaultValues: { firstName: "", lastName: "", email: "", phone: "", password: "" },
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      password: "",
+    },
   });
 
   return (
-    <form onSubmit={handleSubmit(onNext)} noValidate className="w-full max-w-sm">
+    <form
+      onSubmit={handleSubmit(onNext)}
+      noValidate
+      className="w-full max-w-sm"
+    >
       <button
         type="button"
         onClick={onBack}
@@ -200,7 +226,9 @@ function StepAdmin({
       <p className="text-green-600 text-xs font-semibold tracking-[0.16em] uppercase mb-2">
         Step 2 of 3 &middot; Administrator
       </p>
-      <h2 className="text-gray-900 text-3xl font-bold mb-1.5">Your admin login</h2>
+      <h2 className="text-gray-900 text-3xl font-bold mb-1.5">
+        Your admin login
+      </h2>
       <p className="text-gray-500 text-sm mb-6 leading-relaxed">
         This is the account you&apos;ll use to run payroll.
       </p>
@@ -208,7 +236,12 @@ function StepAdmin({
       {/* First + Last name */}
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="first-name" className="text-gray-700 text-sm font-medium">First name</label>
+          <label
+            htmlFor="first-name"
+            className="text-gray-700 text-sm font-medium"
+          >
+            First name
+          </label>
           <Input
             id="first-name"
             type="text"
@@ -220,7 +253,12 @@ function StepAdmin({
           <FieldError message={errors.firstName?.message} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="last-name" className="text-gray-700 text-sm font-medium">Last name</label>
+          <label
+            htmlFor="last-name"
+            className="text-gray-700 text-sm font-medium"
+          >
+            Last name
+          </label>
           <Input
             id="last-name"
             type="text"
@@ -235,7 +273,12 @@ function StepAdmin({
 
       {/* Email */}
       <div className="flex flex-col gap-1.5 mb-4">
-        <label htmlFor="admin-email" className="text-gray-700 text-sm font-medium">Work email</label>
+        <label
+          htmlFor="admin-email"
+          className="text-gray-700 text-sm font-medium"
+        >
+          Work email
+        </label>
         <Input
           id="admin-email"
           type="email"
@@ -249,7 +292,12 @@ function StepAdmin({
 
       {/* Phone */}
       <div className="flex flex-col gap-1.5 mb-4">
-        <label htmlFor="admin-phone" className="text-gray-700 text-sm font-medium">Phone number</label>
+        <label
+          htmlFor="admin-phone"
+          className="text-gray-700 text-sm font-medium"
+        >
+          Phone number
+        </label>
         <Input
           id="admin-phone"
           type="tel"
@@ -263,7 +311,10 @@ function StepAdmin({
 
       {/* Password */}
       <div className="flex flex-col gap-1.5 mb-1.5">
-        <label htmlFor="admin-password" className="text-gray-700 text-sm font-medium">
+        <label
+          htmlFor="admin-password"
+          className="text-gray-700 text-sm font-medium"
+        >
           Create password
         </label>
         <div className="relative">
@@ -281,7 +332,11 @@ function StepAdmin({
             onClick={() => setShowPassword((v) => !v)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-navy-400 hover:text-navy-600 transition-colors"
           >
-            {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            {showPassword ? (
+              <EyeOff className="size-4" />
+            ) : (
+              <Eye className="size-4" />
+            )}
           </button>
         </div>
         <FieldError message={errors.password?.message} />
@@ -316,7 +371,13 @@ function StepConfirm({
   const [agreedPayment, setAgreedPayment] = useState(false);
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="w-full max-w-sm">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit();
+      }}
+      className="w-full max-w-sm"
+    >
       <button
         type="button"
         onClick={onBack}
@@ -340,22 +401,29 @@ function StepConfirm({
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex gap-3">
         <span className="mt-0.5 shrink-0 text-amber-600">
           <svg className="size-4" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            <path
+              fillRule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+              clipRule="evenodd"
+            />
           </svg>
         </span>
         <p className="text-xs text-amber-800 leading-relaxed">
           When you finish, Klare creates a{" "}
           <span className="font-semibold">Moolre business wallet</span> for{" "}
-          <span className="font-semibold">{companyName || "your company"}</span>. You&apos;ll
-          fund this wallet, and every payday it just prompts you and based on
-          that you can either pay them manually or automated (have a settings
-          to switch in on).
+          <span className="font-semibold">{companyName || "your company"}</span>
+          . You&apos;ll fund this wallet, and every payday it just prompts you
+          and based on that you can either pay them manually or automated (have
+          a settings to switch in on).
         </p>
       </div>
 
       {/* Checkboxes */}
       <div className="flex flex-col gap-4 mb-6">
-        <label htmlFor="agree-terms" className="flex items-start gap-3 cursor-pointer">
+        <label
+          htmlFor="agree-terms"
+          className="flex items-start gap-3 cursor-pointer"
+        >
           <input
             id="agree-terms"
             type="checkbox"
@@ -365,12 +433,26 @@ function StepConfirm({
           />
           <span className="text-sm text-gray-700 leading-relaxed">
             I agree to Klare&apos;s{" "}
-            <Link href="#" className="text-green-600 underline underline-offset-2">Terms</Link>{" "}
+            <Link
+              href="#"
+              className="text-green-600 underline underline-offset-2"
+            >
+              Terms
+            </Link>{" "}
             and{" "}
-            <Link href="#" className="text-green-600 underline underline-offset-2">Privacy Policy</Link>.
+            <Link
+              href="#"
+              className="text-green-600 underline underline-offset-2"
+            >
+              Privacy Policy
+            </Link>
+            .
           </span>
         </label>
-        <label htmlFor="agree-payment" className="flex items-start gap-3 cursor-pointer">
+        <label
+          htmlFor="agree-payment"
+          className="flex items-start gap-3 cursor-pointer"
+        >
           <input
             id="agree-payment"
             type="checkbox"
@@ -380,9 +462,13 @@ function StepConfirm({
           />
           <span className="text-sm text-gray-700 leading-relaxed">
             I authorize Klare to move funds on my behalf through the{" "}
-            <Link href="#" className="text-green-600 underline underline-offset-2">
+            <Link
+              href="#"
+              className="text-green-600 underline underline-offset-2"
+            >
               Moolre payment gateway
-            </Link>.
+            </Link>
+            .
           </span>
         </label>
       </div>
@@ -408,7 +494,9 @@ function CheckEmail({ email }: { email: string }) {
         <Mail className="size-10 text-[#d85a30]" />
       </div>
 
-      <h2 className="text-gray-900 text-3xl font-bold mb-3">Check your email</h2>
+      <h2 className="text-gray-900 text-3xl font-bold mb-3">
+        Check your email
+      </h2>
 
       <p className="text-gray-500 text-sm leading-relaxed mb-1">
         We sent a verification link and your wallet details to
@@ -444,7 +532,11 @@ function CheckEmail({ email }: { email: string }) {
 // Page
 export default function SignUpPage() {
   const [step, setStep] = useState<1 | 2 | 3 | "done">(1);
-  const [companyData, setCompanyData] = useState<CompanyValues>({ companyName: "", registrationNo: "", industry: "" });
+  const [companyData, setCompanyData] = useState<CompanyValues>({
+    companyName: "",
+    registrationNo: "",
+    industry: "",
+  });
   const [adminEmail, setAdminEmail] = useState("");
 
   return (

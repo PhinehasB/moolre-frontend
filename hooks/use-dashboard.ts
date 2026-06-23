@@ -4,7 +4,6 @@ import type {
   ChangePasswordRequest,
   ConfirmPayrollRequest,
   CreateEmployeeRequest,
-  UpdateEmployeeRequest,
   DashboardSummaryResponse,
   EmployeeResponse,
   EmployeeStatsResponse,
@@ -21,6 +20,7 @@ import type {
   SubmitFundingOtpRequest,
   TransactionFilter,
   UpdateCompanyProfileRequest,
+  UpdateEmployeeRequest,
   UpdatePayrollAutomationRequest,
   WalletResponse,
 } from "@/lib/dashboard-types";

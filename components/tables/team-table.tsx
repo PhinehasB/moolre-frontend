@@ -1,8 +1,5 @@
 "use client";
 
-import { AddEmployeeModal } from "../modals/add-employee-modal";
-import { EditEmployeeModal } from "../modals/edit-employee-modal";
-import { ImportCSVModal } from "../modals/import-csv-modal";
 import { DataTable } from "@/components/ui/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TablePagination } from "@/components/ui/table-pagination";
@@ -38,6 +35,9 @@ import {
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { AddEmployeeModal } from "../modals/add-employee-modal";
+import { EditEmployeeModal } from "../modals/edit-employee-modal";
+import { ImportCSVModal } from "../modals/import-csv-modal";
 
 function getInitials(name: string) {
   return name

@@ -3,7 +3,14 @@
 import { FundWalletModal } from "@/components/modals/fund-wallet-modal";
 import { DataTable } from "@/components/ui/data-table";
 import { Transaction } from "@/interfaces/tables.interface";
-import { bankDetails, TRANSACTIONS_HISTORY } from "@/utils/mock";
+import {
+  useFundWallet,
+  useSubmitFundingOtp,
+  useWallet,
+} from "@/hooks/use-dashboard";
+import { getApiError } from "@/hooks/use-auth";
+import { mapLedgerEntry } from "@/lib/dashboard-mappers";
+import { formatCurrency, formatCurrencyParts, toNumber } from "@/lib/format";
 import { ColumnDef } from "@tanstack/react-table";
 import {
   ArrowRight,
@@ -14,10 +21,24 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 export default function WalletPage() {
+  const { data, isLoading } = useWallet();
+  const fundWallet = useFundWallet();
   const [isFundWalletOpen, setIsFundWalletOpen] = useState(false);
-  const ledger = useMemo(() => TRANSACTIONS_HISTORY.slice(1, 7), []);
+  const [fundingRef, setFundingRef] = useState<string | null>(null);
+  const [fundingOtp, setFundingOtp] = useState("");
+
+  const submitFundingOtp = useSubmitFundingOtp(fundingRef);
+  const wallet = data?.data;
+
+  const ledger = useMemo(
+    () => (wallet?.ledger ?? []).map(mapLedgerEntry),
+    [wallet?.ledger]
+  );
+
+  const balanceParts = formatCurrencyParts(toNumber(wallet?.balance));
 
   const columns = useMemo<ColumnDef<Transaction, unknown>[]>(
     () => [
@@ -43,9 +64,7 @@ export default function WalletPage() {
         accessorKey: "reference",
         header: "REFERENCE",
         cell: ({ row }) => (
-          <span className="text-sm text-gray-400">
-            {row.original.reference}
-          </span>
+          <span className="text-sm text-gray-400">{row.original.reference}</span>
         ),
       },
       {
@@ -53,7 +72,6 @@ export default function WalletPage() {
         header: "STATUS",
         cell: ({ row }) => {
           const isSuccess = row.original.status === "Success";
-
           return (
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
@@ -77,33 +95,76 @@ export default function WalletPage() {
         header: "AMOUNT",
         cell: ({ row }) => {
           const isInflow = row.original.type === "inflow";
-
           return (
             <span
               className={`block whitespace-nowrap text-right text-sm font-bold ${
                 isInflow ? "text-green-600" : "text-gray-900"
               }`}
             >
-              {isInflow ? "+" : "-"}GHS {row.original.amount.toLocaleString()}
+              {isInflow ? "+" : "-"}
+              {formatCurrency(row.original.amount, wallet?.currency ?? "GHS")}
             </span>
           );
         },
       },
     ],
-    [],
+    [wallet?.currency]
   );
 
   const { tableElement } = DataTable<Transaction>({
     columns,
     data: ledger,
-    pageSize: ledger.length,
+    pageSize: ledger.length || 10,
     getRowId: (row) => row.id,
-    emptyMessage: "No wallet ledger entries yet.",
+    emptyMessage: isLoading ? "Loading ledger..." : "No wallet ledger entries yet.",
   });
 
-  const handleTopUpRequest = (amount: number) => {
-    setIsFundWalletOpen(false);
-    alert(`Top-up request sent for GHS ${amount.toLocaleString()}`);
+  const bankDetails = wallet
+    ? [
+        { label: "Account name", value: wallet.bankTopUp.accountName },
+        { label: "Account number", value: wallet.bankTopUp.accountNumber },
+        { label: "Bank", value: wallet.bankTopUp.bankName },
+      ]
+    : [];
+
+  const handleTopUpRequest = async (payload: {
+    payer: string;
+    amount: number;
+  }) => {
+    try {
+      const result = await fundWallet.mutateAsync(payload);
+      if (result.data.otpRequired) {
+        setFundingRef(result.data.externalRef);
+        toast.message(result.data.message || "Enter the OTP sent to your phone.");
+        return;
+      }
+      setIsFundWalletOpen(false);
+      toast.success(result.data.message || "Top-up request sent.");
+    } catch (error) {
+      toast.error(getApiError(error));
+    }
+  };
+
+  const handleSubmitOtp = async () => {
+    if (!fundingOtp.trim()) return;
+    try {
+      const result = await submitFundingOtp.mutateAsync({ otpcode: fundingOtp });
+      setFundingRef(null);
+      setFundingOtp("");
+      setIsFundWalletOpen(false);
+      toast.success(result.data.message || "Wallet funded successfully.");
+    } catch (error) {
+      toast.error(getApiError(error));
+    }
+  };
+
+  const copyToClipboard = async (label: string, value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      toast.success(`${label} copied.`);
+    } catch {
+      toast.error("Unable to copy to clipboard.");
+    }
   };
 
   return (
@@ -114,13 +175,19 @@ export default function WalletPage() {
             <div>
               <div className="mb-4 flex items-center gap-2 text-xs font-medium text-white/60">
                 <CreditCard className="size-4" />
-                <span>Moolre business wallet - TechCorp Ltd</span>
+                <span>
+                  Moolre business wallet
+                  {wallet?.companyName ? ` - ${wallet.companyName}` : ""}
+                </span>
               </div>
               <p className="text-4xl font-semibold tracking-tight md:text-5xl">
-                GHS 38,200
+                {wallet?.currency ?? "GHS"} {isLoading ? "—" : balanceParts.whole}.
+                <span className="text-2xl font-normal text-white/70">
+                  {isLoading ? "00" : balanceParts.fraction}
+                </span>
               </p>
               <p className="mt-4 text-sm font-medium text-white/65">
-                Settlement account - ****4471
+                Settlement account - {wallet?.settlementAccountMasked ?? "—"}
               </p>
             </div>
 
@@ -162,7 +229,7 @@ export default function WalletPage() {
                     </span>
                     <button
                       type="button"
-                      onClick={() => alert(`Copied ${item.label}`)}
+                      onClick={() => copyToClipboard(item.label, item.value)}
                       className="flex size-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-700"
                       aria-label={`Copy ${item.label}`}
                     >
@@ -195,8 +262,17 @@ export default function WalletPage() {
 
       <FundWalletModal
         isOpen={isFundWalletOpen}
-        onClose={() => setIsFundWalletOpen(false)}
+        onClose={() => {
+          setIsFundWalletOpen(false);
+          setFundingRef(null);
+          setFundingOtp("");
+        }}
         onRequestTopUp={handleTopUpRequest}
+        isSubmitting={fundWallet.isPending || submitFundingOtp.isPending}
+        otpRequired={!!fundingRef}
+        otp={fundingOtp}
+        onOtpChange={setFundingOtp}
+        onSubmitOtp={handleSubmitOtp}
       />
     </>
   );

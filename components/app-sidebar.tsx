@@ -18,10 +18,18 @@ import {
 } from "@/components/ui/sidebar";
 import { SIDEBAR_GROUPS_LINKS } from "@/utils/mock";
 import Link from "next/link";
+import { useAuthStore } from "@/store/auth-store";
+import { useAuthInitials } from "@/hooks/use-auth";
+import { LogoutDialog } from "@/components/modals/logout-dialog";
+
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname() || "";
   const { setOpenMobile, isMobile } = useSidebar();
+  const { user, company } = useAuthStore();
+  const initials = useAuthInitials();
+
+  const fullName = user ? `${user.firstName} ${user.lastName}`.trim() : "";
 
   const isItemActive = (url: string) => {
     if (url === "/dashboard") {
@@ -74,7 +82,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             : "w-full text-gray-600 hover:text-gray-900 hover:bg-gray-100/50 font-normal px-3 py-2 rounded-xl transition-colors"
                         }
                       >
-                        <Link 
+                        <Link
                           href={item.url}
                           onClick={() => {
                             if (isMobile) {
@@ -97,24 +105,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ))}
       </SidebarContent>
 
-      {/* Footer / User Profile */}
+      {/* User Profile + Logout */}
       <SidebarFooter className="bg-sidebar p-4 border-t border-gray-100/80">
         <SidebarMenu>
           <SidebarMenuItem>
             <div className="flex items-center gap-3 w-full">
               {/* Initials Avatar */}
               <div className="flex aspect-square size-9 items-center justify-center rounded-full bg-[#fce8e6] text-[#a13c2f] font-semibold text-sm select-none shrink-0">
-                AO
+                {initials || "?"}
               </div>
               {/* User Info */}
-              <div className="grid flex-1 text-left text-sm leading-tight group-data-[state=collapsed]:hidden">
+              <div className="grid flex-1 text-left text-sm leading-tight group-data-[state=collapsed]:hidden overflow-hidden">
                 <span className="truncate font-semibold text-gray-900">
-                  Ama Owusu
+                  {fullName || "—"}
                 </span>
                 <span className="truncate text-xs text-gray-500">
-                  TechCorp Ltd
+                  {company?.name || "—"}
                 </span>
               </div>
+              <LogoutDialog />
             </div>
           </SidebarMenuItem>
         </SidebarMenu>

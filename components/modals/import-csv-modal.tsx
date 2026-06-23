@@ -8,12 +8,16 @@ interface ImportCSVModalProps {
   isOpen: boolean;
   onClose: () => void;
   onImport: (file: File) => void;
+  onDownloadTemplate?: () => void;
+  isSubmitting?: boolean;
 }
 
 export function ImportCSVModal({
   isOpen,
   onClose,
   onImport,
+  onDownloadTemplate,
+  isSubmitting = false,
 }: ImportCSVModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -98,10 +102,10 @@ export function ImportCSVModal({
           </button>
           <button
             onClick={handleContinue}
-            disabled={!selectedFile}
+            disabled={!selectedFile || isSubmitting}
             className="px-5 py-2.5 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-xl transition-colors shadow-sm active:scale-95 duration-100 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Continue
+            {isSubmitting ? "Importing…" : "Continue"}
           </button>
         </>
       }
@@ -173,17 +177,17 @@ export function ImportCSVModal({
         </div>
 
         {/* Download template link */}
-        <a
-          href="#"
+        <button
+          type="button"
           onClick={(e) => {
             e.preventDefault();
-            alert("Downloading template CSV...");
+            onDownloadTemplate?.();
           }}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-green-600 hover:text-green-700 transition-colors w-fit"
         >
           <Download className="size-4" />
           <span>Download the template CSV</span>
-        </a>
+        </button>
       </div>
     </Modal>
   );

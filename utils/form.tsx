@@ -7,4 +7,4 @@ export function FieldError({ message }: { message?: string }) {
   return <p className="text-xs text-red-500 mt-1">{message}</p>;
 }
 
-export const inputCls = "w-full h-auto px-4 py-2.5 text-sm rounded-lg";
+export const inputCls = "w-full h-auto px-4 py-2.5 text-sm rounded-lg text-gray-900";

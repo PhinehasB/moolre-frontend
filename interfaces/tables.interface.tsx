@@ -10,7 +10,10 @@ export interface Employee {
 }
 
 export interface TeamTableProps {
-  initialData?: Employee[];
+  employees?: Employee[];
+  totalCount?: number;
+  activeCount?: number;
+  isLoading?: boolean;
   title?: string;
   showViewAll?: boolean;
   onViewAll?: () => void;
@@ -43,4 +46,5 @@ export type Report = {
   period: string;
   records: string;
   formats: string[];
+  kind?: string;
 };

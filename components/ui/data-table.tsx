@@ -21,6 +21,8 @@ export interface DataTableProps<TData> {
   onRowSelectionChange?: OnChangeFn<RowSelectionState>;
   emptyMessage?: string;
   getRowId?: (row: TData) => string;
+  manualPagination?: boolean;
+  pageCount?: number;
 }
 
 export function DataTable<TData>({
@@ -33,12 +35,16 @@ export function DataTable<TData>({
   onRowSelectionChange,
   emptyMessage = "No results found.",
   getRowId,
+  manualPagination = false,
+  pageCount,
 }: DataTableProps<TData>) {
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    ...(manualPagination
+      ? { manualPagination: true, pageCount: pageCount ?? -1 }
+      : { getPaginationRowModel: getPaginationRowModel() }),
     onPaginationChange,
     onRowSelectionChange,
     getRowId,
@@ -63,7 +69,7 @@ export function DataTable<TData>({
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
-                    className="px-6 py-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider select-none"
+                    className="px-6 py-3 text-[10px] font-semibold text-gray-400 uppercase tracking-wider select-none whitespace-nowrap"
                     style={{
                       width: header.getSize() !== 150 ? header.getSize() : undefined,
                     }}
@@ -71,9 +77,9 @@ export function DataTable<TData>({
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </th>
                 ))}
               </tr>
@@ -87,7 +93,7 @@ export function DataTable<TData>({
                   className="border-b border-gray-100 hover:bg-gray-50/50 last:border-b-0 transition-colors"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-6 py-4 align-middle">
+                    <td key={cell.id} className="px-6 py-4 align-middle whitespace-nowrap">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

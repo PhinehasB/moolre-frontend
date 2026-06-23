@@ -1,53 +1,68 @@
 "use client";
 
-import { PayrollHistoryTable } from "@/components/tables/payroll-history-table";
 import { ConfirmPayrollModal } from "@/components/modals/confirm-payroll-modal";
-import { INITIAL_DATA } from "@/utils/mock";
+import { PayrollHistoryTable } from "@/components/tables/payroll-history-table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getApiError } from "@/hooks/use-auth";
 import {
-  AlertTriangle,
-  CheckCircle2,
-  RefreshCw,
-} from "lucide-react";
+  useConfirmPayroll,
+  useInitiatePayroll,
+  usePayrollOverview,
+} from "@/hooks/use-dashboard";
+import { mapPayrollRun } from "@/lib/dashboard-mappers";
+import { formatCurrency, ordinalDay, toNumber } from "@/lib/format";
+import { AlertTriangle, CheckCircle2, RefreshCw } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 export default function PayrollPage() {
-  const [walletBalance, setWalletBalance] = useState(38200);
+  const { data, isLoading } = usePayrollOverview();
+  const initiatePayroll = useInitiatePayroll();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [payrollProcessed, setPayrollProcessed] = useState(false);
+  const [payrollRunId, setPayrollRunId] = useState<string | null>(null);
+  const [maskedPhone, setMaskedPhone] = useState("****2233");
 
-  // Calculate from active employees
-  const activeEmployees = useMemo(
-    () => INITIAL_DATA.filter((e) => e.status === "Active"),
-    []
+  const confirmPayroll = useConfirmPayroll(payrollRunId);
+  const overview = data?.data;
+
+  const employeeCount = overview?.run.activeEmployees ?? 0;
+  const totalToPay = toNumber(overview?.run.totalToPay);
+  const walletBalance = toNumber(overview?.run.walletBalance);
+  const coveragePercent = overview?.run.coveragePercent ?? 0;
+  const isFunded = overview?.run.walletCoversInFull ?? false;
+
+  const history = useMemo(
+    () => (overview?.history ?? []).map(mapPayrollRun),
+    [overview?.history],
   );
-  const employeeCount = activeEmployees.length;
-  const totalToPay = activeEmployees.reduce((sum, e) => sum + e.salary, 0);
 
-  const isFunded = walletBalance >= totalToPay;
-  const coveragePercent = Math.min(
-    100,
-    Math.round((walletBalance / totalToPay) * 100)
-  );
-
-  const handleRunPayroll = () => {
-    setIsConfirmOpen(true);
+  const handleRunPayroll = async () => {
+    try {
+      const result = await initiatePayroll.mutateAsync();
+      setPayrollRunId(result.data.runId);
+      setMaskedPhone(result.data.maskedPhone);
+      setIsConfirmOpen(true);
+    } catch (error) {
+      toast.error(getApiError(error));
+    }
   };
 
-  const handleConfirmPayroll = (otp: string) => {
-    // Simulate payroll processing
-    setWalletBalance((prev) => prev - totalToPay);
-    setPayrollProcessed(true);
-    setIsConfirmOpen(false);
-    alert(`Payroll processed! OTP: ${otp}`);
+  const handleConfirmPayroll = async (otp: string) => {
+    try {
+      await confirmPayroll.mutateAsync({ code: otp });
+      setIsConfirmOpen(false);
+      setPayrollRunId(null);
+      toast.success("Payroll processed successfully.");
+    } catch (error) {
+      toast.error(getApiError(error));
+    }
   };
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-300">
-      {/* Top cards grid */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Run payroll card */}
         <div className="lg:col-span-3 bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col">
-          {/* Header */}
           <div className="flex items-center justify-between mb-5">
             <h3 className="text-base font-bold text-gray-900">Run payroll</h3>
             <span className="inline-flex items-center gap-1 bg-green-50 text-green-600 text-xs font-semibold px-2.5 py-1 rounded-full select-none">
@@ -55,27 +70,38 @@ export default function PayrollPage() {
             </span>
           </div>
 
-          {/* Total amount */}
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight mb-1">
-            GHS {totalToPay.toLocaleString()}
+            {isLoading ? (
+              <Skeleton className="h-12 w-48" />
+            ) : (
+              formatCurrency(totalToPay)
+            )}
           </h2>
           <p className="text-sm text-gray-500 mb-5">
-            to {employeeCount} employees
+            {isLoading ? (
+              <Skeleton inline className="h-4 w-32" />
+            ) : (
+              `to ${employeeCount} employees`
+            )}
           </p>
 
-          {/* Coverage progress bar */}
           <div className="mb-4">
             <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-700 ${
-                  isFunded ? "bg-green-600" : "bg-amber-600"
-                }`}
-                style={{ width: `${coveragePercent}%` }}
-              />
+              {isLoading ? (
+                <div className="h-full">
+                  <Skeleton className="h-2.5 rounded-full w-full" />
+                </div>
+              ) : (
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ${
+                    isFunded ? "bg-green-600" : "bg-amber-600"
+                  }`}
+                  style={{ width: `${coveragePercent}%` }}
+                />
+              )}
             </div>
           </div>
 
-          {/* Coverage status */}
           {isFunded ? (
             <div className="flex items-center gap-1.5 text-sm text-green-600 font-semibold mb-6">
               <CheckCircle2 className="size-4 shrink-0" />
@@ -84,30 +110,27 @@ export default function PayrollPage() {
           ) : (
             <div className="flex items-center gap-1.5 text-sm text-amber-600 font-semibold mb-6">
               <AlertTriangle className="size-4 shrink-0" />
-              <span>
-                Wallet covers {coveragePercent}% only — top up first
-              </span>
+              <span>Wallet covers {coveragePercent}% only — top up first</span>
             </div>
           )}
 
-          {/* Run payroll button */}
           <button
             onClick={handleRunPayroll}
-            disabled={payrollProcessed}
+            disabled={initiatePayroll.isPending || isLoading}
             className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm py-3.5 rounded-xl transition-colors active:scale-[0.985] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <RefreshCw className="size-4" />
-            <span>Run payroll now</span>
+            <span>
+              {initiatePayroll.isPending ? "Starting…" : "Run payroll now"}
+            </span>
           </button>
 
-          {/* Disclaimer */}
           <p className="text-xs text-gray-400 text-center mt-3 select-none">
             Only active employees are paid. You&apos;ll confirm with an SMS
             code.
           </p>
         </div>
 
-        {/* Automatic schedule card */}
         <div className="lg:col-span-2 bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col">
           <div className="mb-5">
             <h3 className="text-base font-bold text-gray-900">
@@ -119,53 +142,68 @@ export default function PayrollPage() {
           </div>
 
           <div className="flex flex-col gap-4 flex-1">
-            {/* Pay date */}
             <div className="flex items-center justify-between py-3 border-b border-gray-100">
               <span className="text-sm text-gray-500">Pay date</span>
               <span className="text-sm font-semibold text-gray-900">
-                28th of month
+                {isLoading ? (
+                  <Skeleton inline className="h-4 w-28" />
+                ) : overview ? (
+                  `${ordinalDay(overview.schedule.payDate)} of month`
+                ) : (
+                  "—"
+                )}
               </span>
             </div>
 
-            {/* Notify employees */}
             <div className="flex items-center justify-between py-3 border-b border-gray-100">
               <span className="text-sm text-gray-500">Notify employees</span>
               <span className="text-sm font-semibold text-green-600">
-                2 days before
+                {isLoading ? (
+                  <Skeleton inline className="h-4 w-24" />
+                ) : overview?.schedule.notifyEmployeesBeforePayday ? (
+                  `${overview.schedule.notifyLeadDays} days before`
+                ) : (
+                  "Off"
+                )}
               </span>
             </div>
 
-            {/* Status */}
             <div className="flex items-center justify-between py-3">
               <span className="text-sm text-gray-500">Status</span>
               <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-600 text-xs font-semibold px-2.5 py-1 rounded-full select-none">
                 <span className="size-1.5 rounded-full bg-green-600" />
-                Active
+                {isLoading ? (
+                  <Skeleton inline className="h-4 w-16" />
+                ) : (
+                  (overview?.schedule.status ?? "—")
+                )}
               </span>
             </div>
           </div>
 
-          {/* Edit schedule button */}
-          <button
-            onClick={() => alert("Edit schedule (simulation)")}
-            className="w-full mt-4 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors shadow-sm"
+          <Link
+            href="/dashboard/settings"
+            className="w-full mt-4 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors shadow-sm text-center block"
           >
             Edit schedule
-          </button>
+          </Link>
         </div>
       </div>
 
-      {/* Payroll history table */}
-      <PayrollHistoryTable />
+      <PayrollHistoryTable data={history} isLoading={isLoading} />
 
-      {/* Confirm payroll modal */}
       <ConfirmPayrollModal
         isOpen={isConfirmOpen}
-        onClose={() => setIsConfirmOpen(false)}
+        onClose={() => {
+          setIsConfirmOpen(false);
+          setPayrollRunId(null);
+        }}
         onConfirm={handleConfirmPayroll}
         totalToPay={totalToPay}
         walletBalance={walletBalance}
         employeeCount={employeeCount}
+        maskedPhone={maskedPhone}
+        isSubmitting={confirmPayroll.isPending}
       />
     </div>
   );

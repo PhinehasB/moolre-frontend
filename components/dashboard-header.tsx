@@ -1,9 +1,18 @@
 "use client";
 
 import { DashboardHeaderProps } from "@/interfaces";
-import { DEFAULT_HEADER, ROUTE_HEADERS } from "@/utils/mock";
+import { useDashboardSummary } from "@/hooks/use-dashboard";
+import { useMe } from "@/hooks/use-auth";
+import { ROUTE_HEADERS, DEFAULT_HEADER } from "@/utils/mock";
 import { Bell } from "lucide-react";
 import { usePathname } from "next/navigation";
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
 
 export function DashboardHeader({
   mode,
@@ -14,16 +23,32 @@ export function DashboardHeader({
   subtitle,
 }: DashboardHeaderProps) {
   const pathname = usePathname() || "";
+  const { data: summaryData } = useDashboardSummary();
+  const { data: meData } = useMe();
 
-  // Determine dynamic title and subtitle based on current route if not overridden via props
   const matchedRoute = Object.keys(ROUTE_HEADERS).find((route) =>
-    pathname.includes(route),
+    pathname.includes(route)
   );
 
   const config = matchedRoute ? ROUTE_HEADERS[matchedRoute] : DEFAULT_HEADER;
 
-  const displayTitle = title ?? config.title;
-  const displaySubtitle = subtitle ?? config.subtitle;
+  const firstName =
+    summaryData?.data.greeting.firstName ??
+    meData?.data.user.firstName ??
+    "there";
+
+  const companyName =
+    summaryData?.data.greeting.companyName ??
+    meData?.data.company.name;
+
+  const isHome = pathname === "/dashboard" || pathname === "/dashboard/";
+  const displayTitle =
+    title ?? (isHome ? `${getGreeting()}, ${firstName}` : config.title);
+  const displaySubtitle =
+    subtitle ??
+    (isHome && companyName
+      ? `Here's what's happening at ${companyName} today.`
+      : config.subtitle);
 
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

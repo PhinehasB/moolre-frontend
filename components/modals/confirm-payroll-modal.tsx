@@ -11,6 +11,7 @@ interface ConfirmPayrollModalProps {
   walletBalance: number;
   employeeCount: number;
   maskedPhone?: string;
+  isSubmitting?: boolean;
 }
 
 export function ConfirmPayrollModal({
@@ -21,6 +22,7 @@ export function ConfirmPayrollModal({
   walletBalance,
   employeeCount,
   maskedPhone = "****2233",
+  isSubmitting = false,
 }: ConfirmPayrollModalProps) {
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -92,10 +94,10 @@ export function ConfirmPayrollModal({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={!otpComplete}
+            disabled={!otpComplete || isSubmitting}
             className="px-5 py-2.5 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-xl transition-colors shadow-sm active:scale-95 duration-100 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Confirm & pay
+            {isSubmitting ? "Processing…" : "Confirm & pay"}
           </button>
         </>
       }

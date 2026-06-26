@@ -70,7 +70,7 @@ export default function PayrollPage() {
             </span>
           </div>
 
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight mb-1">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight mb-1 font-space-grotesk">
             {isLoading ? (
               <Skeleton className="h-12 w-48" />
             ) : (

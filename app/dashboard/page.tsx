@@ -80,7 +80,7 @@ export default function Page() {
   ] as const;
   const progressWidthClass =
     progressWidths[
-      Math.min(12, Math.max(0, Math.round((coveragePercent / 100) * 12)))
+    Math.min(12, Math.max(0, Math.round((coveragePercent / 100) * 12)))
     ];
 
   const team = useMemo(
@@ -190,9 +190,9 @@ export default function Page() {
               <AlertTriangle className="size-4" />
             </div>
             <p className="font-medium text-safe-800">
-              Your next payroll is {formatCurrency(totalToPay, currency)} but
-              your wallet sits at {formatCurrency(walletBalance, currency)}. Top
-              up {formatCurrency(deficit, currency)} before{" "}
+              Your next payroll is <span className="font-heading">{formatCurrency(totalToPay, currency)}</span> but
+              your wallet sits at <span className="font-heading">{formatCurrency(walletBalance, currency)}</span>. Top
+              up <span className="font-heading">{formatCurrency(deficit, currency)}</span> before{" "}
               {summary ? formatLocalDate(summary.nextPayroll.date) : "payday"}{" "}
               to pay everyone.
             </p>
@@ -222,7 +222,7 @@ export default function Page() {
                 <p className="text-white/70 text-sm">{greeting.companyName}</p>
               ) : null}
             </div>
-            <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mb-2">
+            <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mb-2 font-heading">
               {currency}{" "}
               {isLoading ? (
                 <Skeleton inline className="inline-block h-8 w-28" />
@@ -239,9 +239,9 @@ export default function Page() {
               </span>
             </h2>
             <div className="flex items-center gap-4 text-white/70 text-xs font-medium select-none">
-              <span>Available {formatCurrency(walletBalance, currency)}</span>
+              <span>Available <span className="font-heading">{formatCurrency(walletBalance, currency)}</span></span>
               <span className="size-1 rounded-full bg-white/40" />
-              <span>Pending {formatCurrency(pending, currency)}</span>
+              <span>Pending <span className="font-heading">{formatCurrency(pending, currency)}</span></span>
             </div>
           </div>
           <div className="flex items-center gap-3 mt-8">
@@ -295,7 +295,7 @@ export default function Page() {
             <span className="text-gray-500 text-xs font-medium mb-1 block select-none">
               Total to pay
             </span>
-            <h4 className="text-xl font-bold text-gray-900 mb-4">
+            <h4 className="text-xl font-bold text-gray-900 mb-4 font-heading">
               {formatCurrency(totalToPay, currency)}
             </h4>
 
@@ -314,7 +314,7 @@ export default function Page() {
                 <div className="flex items-center gap-1.5 text-xs text-safe-600 font-semibold">
                   <AlertTriangle className="size-4 shrink-0" />
                   <span>
-                    Top up {formatCurrency(deficit, currency)} to cover payroll
+                    Top up <span className="font-heading">{formatCurrency(deficit, currency)}</span> to cover payroll
                   </span>
                 </div>
               )}
@@ -351,7 +351,7 @@ export default function Page() {
               <span className="text-gray-500 text-xs font-medium block mb-1">
                 {stat.label}
               </span>
-              <h5 className="text-3xl font-bold text-gray-900 mb-2">
+              <h5 className="text-3xl font-bold text-gray-900 mb-2 font-heading">
                 {isLoading ? (
                   <Skeleton inline className="h-8 w-20 inline-block" />
                 ) : (

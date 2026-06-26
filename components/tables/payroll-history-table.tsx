@@ -89,7 +89,7 @@ export function PayrollHistoryTable({
         accessorKey: "totalPaid",
         header: "TOTAL PAID",
         cell: ({ row }) => (
-          <span className="text-sm font-bold text-gray-900 whitespace-nowrap">
+          <span className="text-sm font-bold text-gray-900 whitespace-nowrap font-space-grotesk">
             {formatCurrency(row.original.totalPaid)}
           </span>
         ),

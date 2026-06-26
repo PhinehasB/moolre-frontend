@@ -97,7 +97,7 @@ export function TransactionsTable() {
           const isPositive = type === "inflow";
           return (
             <span
-              className={`text-sm font-bold whitespace-nowrap ${
+              className={`text-sm font-bold whitespace-nowrap font-space-grotesk ${
                 isPositive ? "text-green-600" : "text-gray-900"
               }`}
             >

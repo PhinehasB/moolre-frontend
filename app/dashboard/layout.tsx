@@ -29,7 +29,7 @@ export default function DashboardLayout({
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex flex-col sm:flex-row sm:items-center gap-4 border-b px-6 py-4  shrink-0 mb-6">
+        <header className="sticky top-0 z-20 bg-white flex flex-col sm:flex-row sm:items-center gap-4 border-b px-6 py-4 shrink-0 mb-6">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
           </div>

@@ -23,7 +23,7 @@ import type {
   VerificationPendingResponse,
 } from "@/lib/auth-types";
 
-// ── Error code → professional message map ─────────────────────────────────────
+// Error code → professional message map
 
 const ERROR_CODE_MESSAGES: Record<string, string> = {
   INVALID_CREDENTIALS:
@@ -117,7 +117,7 @@ export function getApiError(error: unknown): string {
   return "An unexpected error occurred. Please try again.";
 }
 
-// ── Registration form options (from backend) ────────────────────────────────────
+// Registration form options (from backend)
 
 export function useRegistrationOptions() {
   return useQuery<ApiResponse<RegistrationOptionsResponse>, AxiosError>({
@@ -132,7 +132,7 @@ export function useRegistrationOptions() {
   });
 }
 
-// ── Sign-up ───────────────────────────────────────────────────────────────────
+// Sign-up
 
 export type SignUpVariables = {
   request: RegisterCompanyRequest;
@@ -156,7 +156,7 @@ export function useSignUp() {
   });
 }
 
-// ── Sign-in ───────────────────────────────────────────────────────────────────
+// Sign-in
 
 export function useSignIn() {
   const setTokens = useAuthStore((s) => s.setTokens);
@@ -186,7 +186,7 @@ export function useSignIn() {
   });
 }
 
-// ── Sign-out ──────────────────────────────────────────────────────────────────
+// Sign-out
 
 export function useSignOut() {
   const { refreshToken, clearAuth } = useAuthStore();
@@ -209,7 +209,7 @@ export function useSignOut() {
   });
 }
 
-// ── Current user ──────────────────────────────────────────────────────────────
+// Current user
 
 export function useMe() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -225,7 +225,7 @@ export function useMe() {
   });
 }
 
-// ── Forgot password ───────────────────────────────────────────────────────────
+// Forgot password
 
 export function useForgotPassword() {
   return useMutation<
@@ -243,7 +243,27 @@ export function useForgotPassword() {
   });
 }
 
-// ── Reset password ────────────────────────────────────────────────────────────
+export interface UpdateModeRequest {
+  live: boolean;
+}
+
+export function useSetMode() {
+  return useMutation<ApiResponse<{ liveMode: boolean }>, AxiosError, UpdateModeRequest>({
+    mutationFn: async (payload) => {
+      const { data } = await api.put<ApiResponse<{ liveMode: boolean }>>(
+        "/api/v1/settings/mode",
+        payload
+      );
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["me"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+  });
+}
+
+// Reset password 
 
 export function useResetPassword() {
   return useMutation<

@@ -97,7 +97,7 @@ export default function WalletPage() {
           const isInflow = row.original.type === "inflow";
           return (
             <span
-              className={`block whitespace-nowrap text-right text-sm font-bold ${
+              className={`block whitespace-nowrap text-right text-sm font-bold font-space-grotesk ${
                 isInflow ? "text-green-600" : "text-gray-900"
               }`}
             >
@@ -180,7 +180,7 @@ export default function WalletPage() {
                   {wallet?.companyName ? ` - ${wallet.companyName}` : ""}
                 </span>
               </div>
-              <p className="text-4xl font-semibold tracking-tight md:text-5xl">
+              <p className="text-4xl font-semibold tracking-tight md:text-5xl font-space-grotesk">
                 {wallet?.currency ?? "GHS"} {isLoading ? "—" : balanceParts.whole}.
                 <span className="text-2xl font-normal text-white/70">
                   {isLoading ? "00" : balanceParts.fraction}

@@ -2,10 +2,11 @@
 
 import { DashboardHeaderProps } from "@/interfaces";
 import { useDashboardSummary } from "@/hooks/use-dashboard";
-import { useMe } from "@/hooks/use-auth";
+import { useMe, useSetMode } from "@/hooks/use-auth";
 import { ROUTE_HEADERS, DEFAULT_HEADER } from "@/utils/mock";
 import { Bell } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { toast } from "sonner";
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -25,6 +26,7 @@ export function DashboardHeader({
   const pathname = usePathname() || "";
   const { data: summaryData } = useDashboardSummary();
   const { data: meData } = useMe();
+  const setModeMutation = useSetMode();
 
   const matchedRoute = Object.keys(ROUTE_HEADERS).find((route) =>
     pathname.includes(route)
@@ -50,6 +52,34 @@ export function DashboardHeader({
       ? `Here's what's happening at ${companyName} today.`
       : config.subtitle);
 
+  const handleSetSandboxMode = () => {
+    if (mode === "sandbox") return;
+    setModeMutation.mutate(
+      { live: false },
+      {
+        onSuccess: () => {
+          setMode("sandbox");
+          toast.success("Sandbox mode enabled. No real money will be used.");
+        },
+        onError: () => toast.error("Failed to switch to Sandbox mode.")
+      }
+    );
+  };
+
+  const handleSetLiveMode = () => {
+    if (mode === "live") return;
+    setModeMutation.mutate(
+      { live: true },
+      {
+        onSuccess: () => {
+          setMode("live");
+          toast.success("Live mode enabled. Real transactions will be processed.");
+        },
+        onError: () => toast.error("Failed to switch to Live mode.")
+      }
+    );
+  };
+
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div>
@@ -62,22 +92,20 @@ export function DashboardHeader({
         {/* Sandbox Toggle */}
         <div className="flex items-center bg-gray-100 rounded-full p-0.5 border border-gray-200">
           <button
-            onClick={() => setMode("sandbox")}
-            className={`px-3.5 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${
-              mode === "sandbox"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-900"
-            }`}
+            onClick={handleSetSandboxMode}
+            className={`px-3.5 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${mode === "sandbox"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-500 hover:text-gray-900"
+              }`}
           >
             Sandbox
           </button>
           <button
-            onClick={() => setMode("live")}
-            className={`px-3.5 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${
-              mode === "live"
-                ? "bg-black text-white shadow-sm"
-                : "text-gray-500 hover:text-gray-900"
-            }`}
+            onClick={handleSetLiveMode}
+            className={`px-3.5 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${mode === "live"
+              ? "bg-black text-white shadow-sm"
+              : "text-gray-500 hover:text-gray-900"
+              }`}
           >
             Live
           </button>

@@ -94,6 +94,9 @@ export default function Page() {
       setPayrollRunId(result.data.runId);
       setMaskedPhone(result.data.maskedPhone);
       setIsPayrollOpen(true);
+      if (result.data.sandboxCode) {
+        toast.info(`Sandbox OTP: ${result.data.sandboxCode}`, { duration: 10000 });
+      }
     } catch (error) {
       toast.error(getApiError(error));
     }
@@ -169,12 +172,12 @@ export default function Page() {
     {
       id: "paid-last-month",
       label: "Paid last month",
-      value: summary
+      value: summary?.lastPayroll
         ? formatCurrency(summary.lastPayroll.amount, currency)
         : "—",
-      subtext: summary
+      subtext: summary?.lastPayroll
         ? `${formatLocalDate(summary.lastPayroll.date)} • ${summary.lastPayroll.successRate}% success`
-        : "",
+        : summary ? "No recent payroll" : "",
       subtextColor: "text-gray-400",
       icon: Calendar,
       iconBg: "bg-accent-50 text-accent",

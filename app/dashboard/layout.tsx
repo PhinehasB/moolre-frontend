@@ -7,15 +7,23 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useMe } from "@/hooks/use-auth";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { data: meData } = useMe();
   const [mode, setMode] = useState<"live" | "sandbox">("live");
   const [hasNotification, setHasNotification] = useState(true);
+
+  useEffect(() => {
+    if (meData?.data.company) {
+      setMode(meData.data.company.liveMode ? "live" : "sandbox");
+    }
+  }, [meData?.data.company.liveMode]);
 
   return (
     <SidebarProvider>

@@ -84,6 +84,7 @@ export interface CompanyResponse {
   industry: Industry;
   expectedMonthlyPayroll?: PayrollBand;
   status?: CompanyStatus;
+  liveMode?: boolean;
 }
 
 export interface AuthenticationResponse {

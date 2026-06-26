@@ -145,6 +145,7 @@ export interface PayrollOverviewResponse {
 }
 
 export interface PayrollInitiationResponse {
+  sandboxCode: any;
   runId: string;
   employeeCount: number;
   totalAmount: number;
@@ -174,7 +175,7 @@ export interface DashboardSummaryResponse {
     date: string;
     successRate: number;
     employees: number;
-  };
+  } | null;
   stats: {
     activeEmployees: number;
     pendingOnboarding: number;

@@ -43,6 +43,9 @@ export default function PayrollPage() {
       setPayrollRunId(result.data.runId);
       setMaskedPhone(result.data.maskedPhone);
       setIsConfirmOpen(true);
+      if (result.data.sandboxCode) {
+        toast.info(`Sandbox OTP: ${result.data.sandboxCode}`, { duration: 10000 });
+      }
     } catch (error) {
       toast.error(getApiError(error));
     }
@@ -93,9 +96,8 @@ export default function PayrollPage() {
                 </div>
               ) : (
                 <div
-                  className={`h-full rounded-full transition-all duration-700 ${
-                    isFunded ? "bg-green-600" : "bg-amber-600"
-                  }`}
+                  className={`h-full rounded-full transition-all duration-700 ${isFunded ? "bg-green-600" : "bg-amber-600"
+                    }`}
                   style={{ width: `${coveragePercent}%` }}
                 />
               )}

@@ -2,6 +2,7 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { getApiError } from "@/hooks/use-auth";
+import { useMe, useSetMode } from "@/hooks/use-auth";
 import {
   useChangePassword,
   useSettings,
@@ -19,8 +20,11 @@ export default function SettingsPage() {
   const updateAutomation = useUpdatePayrollAutomation();
   const updateProfile = useUpdateCompanyProfile();
   const changePassword = useChangePassword();
+  const { data: meData } = useMe();
+  const setModeMutation = useSetMode();
 
   const settings = data?.data;
+  const liveMode = meData?.data.company.liveMode ?? true;
 
   const [automaticPayroll, setAutomaticPayroll] = useState(true);
   const [payDate, setPayDate] = useState(28);
@@ -137,14 +141,12 @@ export default function SettingsPage() {
                 aria-pressed={automaticPayroll}
                 onClick={() => setAutomaticPayroll((value) => !value)}
                 disabled={mounted ? Boolean(isLoading) : undefined}
-                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                  automaticPayroll ? "bg-green-600" : "bg-gray-200"
-                }`}
+                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${automaticPayroll ? "bg-green-600" : "bg-gray-200"
+                  }`}
               >
                 <span
-                  className={`absolute top-1 size-4 rounded-full bg-white shadow-sm transition-transform ${
-                    automaticPayroll ? "left-6" : "left-1"
-                  }`}
+                  className={`absolute top-1 size-4 rounded-full bg-white shadow-sm transition-transform ${automaticPayroll ? "left-6" : "left-1"
+                    }`}
                 />
               </button>
             </div>
@@ -255,6 +257,39 @@ export default function SettingsPage() {
         >
           {updateProfile.isPending ? "Saving…" : "Save changes"}
         </button>
+      </section>
+
+      <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="mb-6">
+          <h2 className="text-base font-bold text-gray-900">Sandbox mode</h2>
+          <p className="mt-1 text-xs font-medium text-gray-500">
+            Use sandbox mode to test the application with dummy money. Real transactions will not be processed.
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between gap-4 border-t border-gray-100 pt-5">
+          <div>
+            <p className="text-sm font-semibold text-gray-900">
+              Enable Sandbox Mode
+            </p>
+            <p className="mt-1 text-xs text-gray-500">
+              Turn this on to use the application in testing mode
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-pressed={!liveMode}
+            onClick={() => setModeMutation.mutate({ live: !liveMode })}
+            disabled={mounted ? Boolean(setModeMutation.isPending) : undefined}
+            className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${!liveMode ? "bg-black" : "bg-gray-200"
+              }`}
+          >
+            <span
+              className={`absolute top-1 size-4 rounded-full bg-white shadow-sm transition-transform ${!liveMode ? "left-6" : "left-1"
+                }`}
+            />
+          </button>
+        </div>
       </section>
 
       <section className="rounded-2xl border border-red-200 bg-white p-6 shadow-sm">

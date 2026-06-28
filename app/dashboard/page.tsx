@@ -6,12 +6,14 @@ import { TeamTable } from "@/components/tables/team-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getApiError } from "@/hooks/use-auth";
 import {
+  useCheckFundingStatus,
   useConfirmPayroll,
   useDashboardSummary,
   useFundWallet,
   useInitiatePayroll,
   useSubmitFundingOtp,
 } from "@/hooks/use-dashboard";
+import type { FundingStatus } from "@/lib/dashboard-types";
 import { mapEmployeeResponse } from "@/lib/dashboard-mappers";
 import {
   formatCurrency,
@@ -41,10 +43,13 @@ export default function Page() {
   const [payrollRunId, setPayrollRunId] = useState<string | null>(null);
   const [maskedPhone, setMaskedPhone] = useState("****2233");
   const [fundingRef, setFundingRef] = useState<string | null>(null);
+  const [fundingStatus, setFundingStatus] = useState<FundingStatus | undefined>(undefined);
+  const [fundingMessage, setFundingMessage] = useState("");
   const [fundingOtp, setFundingOtp] = useState("");
 
   const confirmPayroll = useConfirmPayroll(payrollRunId);
   const submitFundingOtp = useSubmitFundingOtp(fundingRef);
+  const checkFundingStatus = useCheckFundingStatus(fundingRef);
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -119,15 +124,10 @@ export default function Page() {
   }) => {
     try {
       const result = await fundWallet.mutateAsync(payload);
-      if (result.data.otpRequired) {
-        setFundingRef(result.data.externalRef);
-        toast.message(
-          result.data.message || "Enter the OTP sent to your phone.",
-        );
-        return;
-      }
-      setIsFundOpen(false);
-      toast.success(result.data.message || "Top-up request sent.");
+      const fd = result.data;
+      setFundingRef(fd.externalRef);
+      setFundingStatus(fd.status);
+      setFundingMessage(fd.message ?? "");
     } catch (error) {
       toast.error(getApiError(error));
     }
@@ -136,16 +136,37 @@ export default function Page() {
   const handleSubmitOtp = async () => {
     if (!fundingOtp.trim()) return;
     try {
-      const result = await submitFundingOtp.mutateAsync({
-        otpcode: fundingOtp,
-      });
-      setFundingRef(null);
-      setFundingOtp("");
-      setIsFundOpen(false);
-      toast.success(result.data.message || "Wallet funded successfully.");
+      const result = await submitFundingOtp.mutateAsync({ otpcode: fundingOtp });
+      const fd = result.data;
+      setFundingStatus(fd.status);
+      setFundingMessage(fd.message ?? "");
+      if (fd.status === "SUCCESS") {
+        toast.success(fd.message ?? "Wallet funded successfully.");
+      }
     } catch (error) {
       toast.error(getApiError(error));
     }
+  };
+
+  const handleCheckStatus = async () => {
+    if (!fundingRef) return;
+    try {
+      const result = await checkFundingStatus.mutateAsync();
+      const fd = result.data;
+      setFundingStatus(fd.status);
+      setFundingMessage(fd.message ?? "");
+      if (fd.status === "SUCCESS") toast.success(fd.message ?? "Wallet funded.");
+      else if (fd.status === "FAILED") toast.error(fd.message ?? "Payment failed.");
+    } catch {
+      // silently ignore
+    }
+  };
+
+  const resetFundingState = () => {
+    setFundingRef(null);
+    setFundingStatus(undefined);
+    setFundingMessage("");
+    setFundingOtp("");
   };
 
   const stats = [
@@ -193,9 +214,9 @@ export default function Page() {
               <AlertTriangle className="size-4" />
             </div>
             <p className="font-medium text-safe-800">
-              Your next payroll is <span className="font-heading">{formatCurrency(totalToPay, currency)}</span> but
-              your wallet sits at <span className="font-heading">{formatCurrency(walletBalance, currency)}</span>. Top
-              up <span className="font-heading">{formatCurrency(deficit, currency)}</span> before{" "}
+              Your next payroll is <span className="font-space-grotesk">{formatCurrency(totalToPay, currency)}</span> but
+              your wallet sits at <span className="font-space-grotesk">{formatCurrency(walletBalance, currency)}</span>. Top
+              up <span className="font-space-grotesk">{formatCurrency(deficit, currency)}</span> before{" "}
               {summary ? formatLocalDate(summary.nextPayroll.date) : "payday"}{" "}
               to pay everyone.
             </p>
@@ -225,7 +246,7 @@ export default function Page() {
                 <p className="text-white/70 text-sm">{greeting.companyName}</p>
               ) : null}
             </div>
-            <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mb-2 font-heading">
+            <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mb-2 font-space-grotesk">
               {currency}{" "}
               {isLoading ? (
                 <Skeleton inline className="inline-block h-8 w-28" />
@@ -242,9 +263,9 @@ export default function Page() {
               </span>
             </h2>
             <div className="flex items-center gap-4 text-white/70 text-xs font-medium select-none">
-              <span>Available <span className="font-heading">{formatCurrency(walletBalance, currency)}</span></span>
+              <span>Available <span className="font-space-grotesk">{formatCurrency(walletBalance, currency)}</span></span>
               <span className="size-1 rounded-full bg-white/40" />
-              <span>Pending <span className="font-heading">{formatCurrency(pending, currency)}</span></span>
+              <span>Pending <span className="font-space-grotesk">{formatCurrency(pending, currency)}</span></span>
             </div>
           </div>
           <div className="flex items-center gap-3 mt-8">
@@ -298,7 +319,7 @@ export default function Page() {
             <span className="text-gray-500 text-xs font-medium mb-1 block select-none">
               Total to pay
             </span>
-            <h4 className="text-xl font-bold text-gray-900 mb-4 font-heading">
+            <h4 className="text-xl font-bold text-gray-900 mb-4 font-space-grotesk">
               {formatCurrency(totalToPay, currency)}
             </h4>
 
@@ -317,7 +338,7 @@ export default function Page() {
                 <div className="flex items-center gap-1.5 text-xs text-safe-600 font-semibold">
                   <AlertTriangle className="size-4 shrink-0" />
                   <span>
-                    Top up <span className="font-heading">{formatCurrency(deficit, currency)}</span> to cover payroll
+                    Top up <span className="font-space-grotesk">{formatCurrency(deficit, currency)}</span> to cover payroll
                   </span>
                 </div>
               )}
@@ -354,7 +375,7 @@ export default function Page() {
               <span className="text-gray-500 text-xs font-medium block mb-1">
                 {stat.label}
               </span>
-              <h5 className="text-3xl font-bold text-gray-900 mb-2 font-heading">
+              <h5 className="text-3xl font-bold text-gray-900 mb-2 font-space-grotesk">
                 {isLoading ? (
                   <Skeleton inline className="h-8 w-20 inline-block" />
                 ) : (
@@ -377,13 +398,20 @@ export default function Page() {
       <FundWalletModal
         isOpen={isFundOpen}
         onClose={() => {
-          setIsFundOpen(false);
-          setFundingRef(null);
-          setFundingOtp("");
+          const closable = !fundingStatus || fundingStatus === "SUCCESS" || fundingStatus === "FAILED";
+          if (closable) {
+            setIsFundOpen(false);
+            resetFundingState();
+          } else {
+            setIsFundOpen(false);
+          }
         }}
         onRequestTopUp={handleFundWallet}
+        onCheckStatus={handleCheckStatus}
         isSubmitting={fundWallet.isPending || submitFundingOtp.isPending}
-        otpRequired={!!fundingRef}
+        isCheckingStatus={checkFundingStatus.isPending}
+        fundingStatus={fundingStatus}
+        fundingMessage={fundingMessage}
         otp={fundingOtp}
         onOtpChange={setFundingOtp}
         onSubmitOtp={handleSubmitOtp}

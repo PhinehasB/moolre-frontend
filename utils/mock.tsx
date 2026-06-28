@@ -267,6 +267,7 @@ export const PAYROLL_HISTORY: PayrollRun[] = [
     employees: 9,
     successRate: 100,
     totalPaid: 45000,
+    status: "COMPLETED",
   },
   {
     id: "pr-2",
@@ -275,6 +276,7 @@ export const PAYROLL_HISTORY: PayrollRun[] = [
     employees: 7,
     successRate: 88,
     totalPaid: 38500,
+    status: "COMPLETED",
   },
   {
     id: "pr-3",
@@ -283,6 +285,7 @@ export const PAYROLL_HISTORY: PayrollRun[] = [
     employees: 6,
     successRate: 100,
     totalPaid: 34200,
+    status: "COMPLETED",
   },
 ];
 

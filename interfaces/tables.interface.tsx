@@ -27,6 +27,7 @@ export interface PayrollRun {
   employees: number;
   successRate: number;
   totalPaid: number;
+  status: string;
 }
 
 export interface Transaction {
@@ -34,7 +35,7 @@ export interface Transaction {
   date: string;
   description: string;
   reference: string;
-  status: "Success" | "Failed";
+  status: "Success" | "Failed" | "Pending";
   amount: number;
   type: "inflow" | "payout";
 }

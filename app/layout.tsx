@@ -14,7 +14,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 const spaceGrotesk = Space_Grotesk({
-  variable: "--font-heading",
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
 });
 

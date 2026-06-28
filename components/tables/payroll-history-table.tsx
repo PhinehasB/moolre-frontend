@@ -7,7 +7,8 @@ import { getApiError } from "@/hooks/use-auth";
 import { downloadAuthenticatedFile } from "@/lib/download";
 import { formatCurrency } from "@/lib/format";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
-import { Download } from "lucide-react";
+import { useReconcilePayroll } from "@/hooks/use-dashboard";
+import { Download, RefreshCw } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -24,6 +25,17 @@ export function PayrollHistoryTable({
     pageIndex: 0,
     pageSize: 10,
   });
+
+  const reconcilePayroll = useReconcilePayroll();
+
+  const handleReconcile = async (run: PayrollRun) => {
+    try {
+      await reconcilePayroll.mutateAsync({ runId: run.id });
+      toast.success("Payroll run reconciled successfully.");
+    } catch (error) {
+      toast.error(getApiError(error));
+    }
+  };
 
   const handleDownload = async (run: PayrollRun) => {
     try {
@@ -95,21 +107,35 @@ export function PayrollHistoryTable({
         ),
       },
       {
-        id: "download",
+        id: "actions",
         header: "",
-        cell: ({ row }) => (
-          <button
-            onClick={() => handleDownload(row.original)}
-            className="flex items-center justify-center size-9 rounded-lg text-gray-400 hover:text-green-600 hover:bg-gray-100 transition-colors"
-            aria-label={`Download ${row.original.period} receipt`}
-          >
-            <Download className="size-4" />
-          </button>
-        ),
-        size: 56,
+        cell: ({ row }) => {
+          if (row.original.status === "PROCESSING") {
+            return (
+              <button
+                onClick={() => handleReconcile(row.original)}
+                disabled={reconcilePayroll.isPending}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-600 bg-amber-50 hover:bg-amber-100 transition-colors disabled:opacity-50"
+              >
+                <RefreshCw className={`size-3.5 ${reconcilePayroll.isPending ? "animate-spin" : ""}`} />
+                Reconcile
+              </button>
+            );
+          }
+          return (
+            <button
+              onClick={() => handleDownload(row.original)}
+              className="flex items-center justify-center size-9 rounded-lg text-gray-400 hover:text-green-600 hover:bg-gray-100 transition-colors"
+              aria-label={`Download ${row.original.period} receipt`}
+            >
+              <Download className="size-4" />
+            </button>
+          );
+        },
+        size: 90,
       },
     ],
-    []
+    [reconcilePayroll.isPending]
   );
 
   const { table, tableElement } = DataTable<PayrollRun>({

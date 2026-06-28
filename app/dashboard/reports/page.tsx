@@ -46,7 +46,7 @@ export default function ReportsPage() {
     },
   ];
 
-  const handleDownload = async (report: Report) => {
+  const handleDownload = async (report: Report, requestedFormat?: string) => {
     try {
       if (report.kind === "TAX_SUMMARY") {
         await downloadAuthenticatedFile(
@@ -56,7 +56,7 @@ export default function ReportsPage() {
         return;
       }
 
-      const format = report.formats[0]?.toLowerCase() === "pdf" ? "pdf" : "csv";
+      const format = requestedFormat || (report.formats[0]?.toLowerCase() === "pdf" ? "pdf" : "csv");
       await downloadAuthenticatedFile(
         `/api/v1/reports/payroll-runs/${report.id}?format=${format}`,
         `${report.name.replace(/\s+/g, "-").toLowerCase()}.${format}`,
@@ -113,13 +113,18 @@ export default function ReportsPage() {
         id: "download",
         header: "",
         cell: ({ row }) => (
-          <button
-            onClick={() => handleDownload(row.original)}
-            className="inline-flex h-8 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-800 shadow-xs transition-colors hover:bg-gray-50"
-          >
-            <ArrowDownToLine className="size-3.5" />
-            <span>Download</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {row.original.formats.map((format) => (
+              <button
+                key={format}
+                onClick={() => handleDownload(row.original, format.toLowerCase())}
+                className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 text-xs font-semibold text-gray-800 shadow-xs transition-colors hover:bg-gray-50"
+              >
+                <ArrowDownToLine className="size-3.5" />
+                <span>{format}</span>
+              </button>
+            ))}
+          </div>
         ),
         size: 140,
       },

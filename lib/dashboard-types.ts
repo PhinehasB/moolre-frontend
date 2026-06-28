@@ -158,6 +158,12 @@ export interface ConfirmPayrollRequest {
   code: string;
 }
 
+export interface AutoRunResponse {
+  outcome: string;
+  message: string;
+  run: PayrollRunResponse | null;
+}
+
 export interface DashboardSummaryResponse {
   greeting: { firstName: string; companyName: string };
   wallet: { balance: number; pending: number; currency: string };

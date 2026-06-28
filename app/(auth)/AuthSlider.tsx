@@ -7,40 +7,34 @@ import { useEffect, useState } from "react";
 // Salary card component for Slide 1
 function SalaryCard() {
   return (
-    <div className="relative bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-5 text-white w-72 shadow-xl">
+    <div className="relative bg-white/10 backdrop-blur-sm border border-white/20 rounded-[20px] p-6 text-white w-[420px] shadow-xl">
       {/* Row: name + amount */}
-      <div className="flex items-center justify-between text-sm font-medium mb-3">
-        <span className="text-white/80">Kwame&apos;s salary this month</span>
-        <span className="font-semibold">GHS 5,000</span>
+      <div className="flex items-center justify-between text-sm mb-4">
+        <span className="text-white/80 font-medium">Kwame&apos;s salary this month</span>
+        <span className="font-semibold text-[15px] font-space-grotesk">GHS 5,000</span>
       </div>
 
       {/* Progress bar */}
-      <div className="h-2 rounded-full bg-white/20 mb-4 overflow-hidden">
-        <div
-          className="h-full rounded-full"
-          style={{
-            width: "70%",
-            background:
-              "linear-gradient(90deg, var(--color-spendable) 0%, var(--color-amber-400) 100%)",
-          }}
-        />
+      <div className="flex h-2.5 w-full rounded-full bg-white/20 mb-5 overflow-hidden">
+        <div className="h-full bg-spendable" style={{ width: "70%" }} />
+        <div className="h-full bg-amber-400" style={{ width: "30%" }} />
       </div>
 
       {/* Legend */}
-      <div className="flex gap-6 text-sm">
+      <div className="flex gap-8 text-sm">
         <div>
-          <div className="flex items-center gap-1.5 text-white/70 mb-0.5">
+          <div className="flex items-center gap-2 text-white/80 mb-1 text-xs">
             <span className="size-2 rounded-full bg-spendable" />
             Spendable
           </div>
-          <p className="font-semibold">GHS 3,500</p>
+          <p className="font-semibold text-[17px] font-space-grotesk">GHS 3,500</p>
         </div>
         <div>
-          <div className="flex items-center gap-1.5 text-white/70 mb-0.5">
+          <div className="flex items-center gap-2 text-white/80 mb-1 text-xs">
             <span className="size-2 rounded-full bg-amber-400" />
             Safe wallet
           </div>
-          <p className="font-semibold">GHS 1,500</p>
+          <p className="font-semibold text-[17px] font-space-grotesk">GHS 1,500</p>
         </div>
       </div>
     </div>
@@ -70,7 +64,7 @@ export default function AuthSlider() {
               }`}
               style={{
                 background:
-                  "linear-gradient(160deg, var(--color-green-600) 0%, var(--color-green-400) 40%, var(--color-amber-600) 100%)",
+                  "linear-gradient(to bottom, #116851 0%, #208764 65%, #dcb054 100%)",
               }}
             >
               {/* Subtle radial glow */}
@@ -150,7 +144,7 @@ export default function AuthSlider() {
                 <h1
                   className={`text-white tracking-tight ${
                     slide.type === "gradient"
-                      ? "text-3xl sm:text-4xl font-bold leading-snug"
+                      ? "text-4xl sm:text-5xl lg:text-[54px] font-medium leading-[1.15] font-space-grotesk"
                       : "text-2xl font-medium leading-tight"
                   }`}
                 >

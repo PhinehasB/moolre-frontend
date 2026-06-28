@@ -1,7 +1,8 @@
 "use client";
 
 import { Modal } from "@/components/ui/modal";
-import { useEffect, useRef, useState } from "react";
+import { OtpBoxInput } from "@/components/ui/otp-box-input";
+import { useEffect, useState } from "react";
 
 interface ConfirmPayrollModalProps {
   isOpen: boolean;
@@ -24,53 +25,17 @@ export function ConfirmPayrollModal({
   maskedPhone = "****2233",
   isSubmitting = false,
 }: ConfirmPayrollModalProps) {
-  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [otp, setOtp] = useState<string>("");
 
   // Reset OTP on open
   useEffect(() => {
     if (isOpen) {
-      setOtp(["", "", "", "", "", ""]);
-      // Focus first input after a short delay for animation
-      setTimeout(() => inputRefs.current[0]?.focus(), 150);
+      setOtp("");
     }
   }, [isOpen]);
 
-  const handleChange = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
-
-    const newOtp = [...otp];
-    newOtp[index] = value.slice(-1);
-    setOtp(newOtp);
-
-    // Auto-advance to next input
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    if (pasted.length > 0) {
-      const newOtp = [...otp];
-      for (let i = 0; i < 6; i++) {
-        newOtp[i] = pasted[i] || "";
-      }
-      setOtp(newOtp);
-      const focusIndex = Math.min(pasted.length, 5);
-      inputRefs.current[focusIndex]?.focus();
-    }
-  };
-
-  const otpComplete = otp.every((digit) => digit !== "");
-  const otpString = otp.join("");
+  const otpComplete = otp.length === 6;
+  const otpString = otp;
 
   const handleSubmit = () => {
     if (otpComplete) {
@@ -121,28 +86,12 @@ export function ConfirmPayrollModal({
           </p>
 
           {/* OTP inputs */}
-          <div className="flex items-center justify-center gap-2.5">
-            {otp.map((digit, i) => (
-              <input
-                key={i}
-                ref={(el) => {
-                  inputRefs.current[i] = el;
-                }}
-                type="text"
-                inputMode="numeric"
-                maxLength={1}
-                value={digit}
-                onChange={(e) => handleChange(i, e.target.value)}
-                onKeyDown={(e) => handleKeyDown(i, e)}
-                onPaste={i === 0 ? handlePaste : undefined}
-                className={`size-12 text-center text-lg font-semibold border rounded-xl bg-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 ${
-                  digit
-                    ? "border-green-600 text-gray-900"
-                    : "border-gray-200 text-gray-400"
-                }`}
-              />
-            ))}
-          </div>
+          <OtpBoxInput
+            length={6}
+            value={otp}
+            onChange={setOtp}
+            disabled={isSubmitting}
+          />
         </div>
       </div>
     </Modal>

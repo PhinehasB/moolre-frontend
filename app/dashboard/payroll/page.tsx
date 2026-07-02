@@ -8,6 +8,7 @@ import {
   useConfirmPayroll,
   useInitiatePayroll,
   usePayrollOverview,
+  useAutoRunPayroll,
 } from "@/hooks/use-dashboard";
 import { mapPayrollRun } from "@/lib/dashboard-mappers";
 import { formatCurrency, ordinalDay, toNumber } from "@/lib/format";
@@ -19,6 +20,7 @@ import { toast } from "sonner";
 export default function PayrollPage() {
   const { data, isLoading } = usePayrollOverview();
   const initiatePayroll = useInitiatePayroll();
+  const autoRunPayroll = useAutoRunPayroll();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [payrollRunId, setPayrollRunId] = useState<string | null>(null);
   const [maskedPhone, setMaskedPhone] = useState("****2233");
@@ -57,6 +59,20 @@ export default function PayrollPage() {
       setIsConfirmOpen(false);
       setPayrollRunId(null);
       toast.success("Payroll processed successfully.");
+    } catch (error) {
+      toast.error(getApiError(error));
+    }
+  };
+
+  const handleAutoRunPayroll = async () => {
+    try {
+      const result = await autoRunPayroll.mutateAsync();
+      const outcome = result.data.outcome;
+      if (outcome === "RAN") {
+        toast.success(result.data.message);
+      } else {
+        toast.warning(result.data.message);
+      }
     } catch (error) {
       toast.error(getApiError(error));
     }
@@ -183,12 +199,24 @@ export default function PayrollPage() {
             </div>
           </div>
 
-          <Link
-            href="/dashboard/settings"
-            className="w-full mt-4 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors shadow-sm text-center block"
-          >
-            Edit schedule
-          </Link>
+          <div className="flex items-center gap-3 mt-4">
+            <Link
+              href="/dashboard/settings"
+              className="flex-1 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors shadow-sm text-center block"
+            >
+              Edit schedule
+            </Link>
+            {overview?.schedule.automaticPayroll && (
+              <button
+                onClick={handleAutoRunPayroll}
+                disabled={autoRunPayroll.isPending || isLoading}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-semibold text-white bg-black rounded-xl hover:bg-gray-800 transition-colors shadow-sm active:scale-[0.985] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <RefreshCw className="size-3.5" />
+                {autoRunPayroll.isPending ? "Running…" : "Auto-run now"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

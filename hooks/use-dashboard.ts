@@ -1,6 +1,7 @@
 import { api, idempotentRequestConfig } from "@/lib/api";
 import type { ApiResponse } from "@/lib/auth-types";
 import type {
+  AutoRunResponse,
   ChangePasswordRequest,
   ConfirmPayrollRequest,
   CreateEmployeeRequest,
@@ -223,6 +224,28 @@ export function useSubmitFundingOtp(externalRef: string | null) {
   });
 }
 
+export function useCheckFundingStatus(externalRef: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation<ApiResponse<FundingResponse>, AxiosError, void>({
+    mutationFn: async () => {
+      const { data } = await api.get<ApiResponse<FundingResponse>>(
+        `/api/v1/wallet/fund/${externalRef}/status`,
+      );
+      return data;
+    },
+    onSuccess: (result) => {
+      if (
+        result.data.status === "SUCCESS" ||
+        result.data.status === "FAILED"
+      ) {
+        queryClient.invalidateQueries({ queryKey: dashboardKeys.wallet });
+        queryClient.invalidateQueries({ queryKey: dashboardKeys.summary });
+        queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      }
+    },
+  });
+}
+
 export function useTransactions(params: TransactionsQueryParams = {}) {
   return useQuery<ApiResponse<PageResponse<LedgerEntry>>, AxiosError>({
     queryKey: dashboardKeys.transactions(params),
@@ -281,6 +304,40 @@ export function useConfirmPayroll(runId: string | null) {
       return data;
     },
     onSuccess: () => invalidateDashboardData(queryClient),
+  });
+}
+
+export function useAutoRunPayroll() {
+  const queryClient = useQueryClient();
+  return useMutation<ApiResponse<AutoRunResponse>, AxiosError, void>({
+    mutationFn: async () => {
+      const { data } = await api.post<ApiResponse<AutoRunResponse>>(
+        "/api/v1/payroll/runs/auto-run",
+        undefined,
+        idempotentRequestConfig(),
+      );
+      return data;
+    },
+    onSuccess: () => invalidateDashboardData(queryClient),
+  });
+}
+
+export function useReconcilePayroll() {
+  const queryClient = useQueryClient();
+  return useMutation<ApiResponse<PayrollRunResponse>, AxiosError, { runId: string }>({
+    mutationFn: async ({ runId }) => {
+      const { data } = await api.post<ApiResponse<PayrollRunResponse>>(
+        `/api/v1/payroll/runs/${runId}/reconcile`,
+        undefined,
+        idempotentRequestConfig(),
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.payroll });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.wallet });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.summary });
+    },
   });
 }
 

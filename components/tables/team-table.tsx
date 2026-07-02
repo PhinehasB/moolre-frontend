@@ -249,7 +249,7 @@ export function TeamTable({
         accessorKey: "salary",
         header: "SALARY",
         cell: ({ row }) => (
-          <span className="text-sm font-bold text-gray-900 whitespace-nowrap">
+          <span className="text-sm font-bold text-gray-900 whitespace-nowrap font-space-grotesk">
             GHS {row.original.salary.toLocaleString()}
           </span>
         ),

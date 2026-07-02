@@ -54,6 +54,7 @@ export function mapPayrollRun(run: PayrollRunResponse): PayrollRun {
     employees: run.employees,
     successRate: run.successRate,
     totalPaid: toNumber(run.totalPaid),
+    status: run.status,
   };
 }
 

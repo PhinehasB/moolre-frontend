@@ -10,7 +10,10 @@ export interface Employee {
 }
 
 export interface TeamTableProps {
-  initialData?: Employee[];
+  employees?: Employee[];
+  totalCount?: number;
+  activeCount?: number;
+  isLoading?: boolean;
   title?: string;
   showViewAll?: boolean;
   onViewAll?: () => void;
@@ -24,6 +27,7 @@ export interface PayrollRun {
   employees: number;
   successRate: number;
   totalPaid: number;
+  status: string;
 }
 
 export interface Transaction {
@@ -31,7 +35,7 @@ export interface Transaction {
   date: string;
   description: string;
   reference: string;
-  status: "Success" | "Failed";
+  status: "Success" | "Failed" | "Pending";
   amount: number;
   type: "inflow" | "payout";
 }
@@ -43,4 +47,5 @@ export type Report = {
   period: string;
   records: string;
   formats: string[];
+  kind?: string;
 };

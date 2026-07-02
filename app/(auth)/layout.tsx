@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
-import AuthSlider from "./AuthSlider";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "Moolre | Auth",
   description: "Sign in or create a company account on Moolre.",
 };
+
+
+
+import AuthSlider from "./AuthSlider";
 
 // Auth layout 
 export default function AuthLayout({
@@ -14,7 +18,6 @@ export default function AuthLayout({
 }) {
   return (
     <div className="min-h-screen flex">
-      {/* LEFT PANEL */}
       <AuthSlider />
 
       {/* RIGHT PANEL (auth page content) */}

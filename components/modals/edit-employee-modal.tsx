@@ -1,93 +1,109 @@
 "use client";
 
 import { Modal } from "@/components/ui/modal";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
+import type { Employee } from "@/interfaces/tables.interface";
+import { useEffect, useState } from "react";
 
-interface AddEmployeeModalProps {
+interface EditEmployeeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (payload: {
+  initial?: Employee | null;
+  onUpdate: (payload: {
+    id: string;
     firstName: string;
     lastName: string;
     email: string;
     phone: string;
     role: string;
     monthlySalary: number;
-    sendInvitation: boolean;
+    status: "Active" | "Pending" | "Suspended";
   }) => void;
   isSubmitting?: boolean;
 }
 
-const addEmployeeSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().min(1, "Phone is required"),
-  role: z.string().min(1).optional(),
-  salary: z
-    .string()
-    .min(1, "Salary is required")
-    .refine((val) => {
-      const n = parseFloat(val.replace(/[^0-9.]/g, ""));
-      return Number.isFinite(n) && n > 0;
-    }, "Salary must be a positive number"),
-  sendInvite: z.boolean().optional(),
-});
-
-type AddEmployeeForm = z.infer<typeof addEmployeeSchema>;
-
-export function AddEmployeeModal({
+export function EditEmployeeModal({
   isOpen,
   onClose,
-  onAdd,
+  initial = null,
+  onUpdate,
   isSubmitting = false,
-}: AddEmployeeModalProps) {
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isValid, isSubmitting: formSubmitting },
-  } = useForm<AddEmployeeForm>({
-    resolver: zodResolver(addEmployeeSchema),
-    mode: "onChange",
-    defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      role: "Employee",
-      salary: "",
-      sendInvite: true,
-    },
-  });
+}: EditEmployeeModalProps) {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [role, setRole] = useState("Employee");
+  const [salary, setSalary] = useState("");
+  const [status, setStatus] = useState<"Active" | "Pending" | "Suspended">(
+    "Active",
+  );
 
-  const onSubmit = (values: AddEmployeeForm) => {
-    const parsedSalary = parseFloat(values.salary.replace(/[^0-9.]/g, ""));
-    onAdd({
-      firstName: values.firstName.trim(),
-      lastName: values.lastName.trim(),
-      email: values.email.trim(),
-      phone: values.phone.trim(),
-      role: values.role?.trim() || "Employee",
-      monthlySalary: parsedSalary,
-      sendInvitation: !!values.sendInvite,
-    });
-    reset();
+  useEffect(() => {
+    if (!initial) return;
+    const parts = initial.name.split(" ");
+    setFirstName(parts.shift() ?? "");
+    setLastName(parts.join(" ") ?? "");
+    setEmail(initial.email ?? "");
+    setPhone(initial.phone ?? "");
+    setRole((initial as any).role ?? "Employee");
+    setSalary(String(initial.salary ?? ""));
+    setStatus(initial.status ?? "Active");
+  }, [initial]);
+
+  const resetForm = () => {
+    setFirstName("");
+    setLastName("");
+    setEmail("");
+    setPhone("");
+    setRole("Employee");
+    setSalary("");
+    setStatus("Active");
   };
 
   const handleClose = () => {
-    reset();
+    resetForm();
     onClose();
   };
+
+  const handleSubmit = () => {
+    if (!initial) return;
+    const parsedSalary = parseFloat(salary.replace(/[^0-9.]/g, ""));
+    if (
+      !firstName.trim() ||
+      !lastName.trim() ||
+      !email.trim() ||
+      !phone.trim()
+    ) {
+      return;
+    }
+    if (!Number.isFinite(parsedSalary) || parsedSalary <= 0) return;
+
+    onUpdate({
+      id: initial.id,
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      role: role.trim() || "Employee",
+      monthlySalary: parsedSalary,
+      status,
+    });
+  };
+
+  const isValid =
+    firstName.trim() &&
+    lastName.trim() &&
+    email.trim() &&
+    phone.trim() &&
+    Number.isFinite(parseFloat(salary.replace(/[^0-9.]/g, ""))) &&
+    parseFloat(salary.replace(/[^0-9.]/g, "")) > 0;
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Add employee"
-      description="We'll create their Moolre wallet and email their login."
+      title="Edit employee"
+      description="Update employee details and status."
       footer={
         <>
           <button
@@ -97,48 +113,41 @@ export function AddEmployeeModal({
             Cancel
           </button>
           <button
-            onClick={handleSubmit(onSubmit)}
-            disabled={!isValid || formSubmitting || isSubmitting}
+            onClick={handleSubmit}
+            disabled={!isValid || isSubmitting}
             className="px-5 py-2.5 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-xl transition-colors shadow-sm active:scale-95 duration-100 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {isSubmitting || formSubmitting ? "Adding…" : "Add employee"}
+            {isSubmitting ? "Saving…" : "Save changes"}
           </button>
         </>
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      <div className="flex flex-col gap-5">
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
               First name
             </label>
             <input
-              {...register("firstName")}
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
               placeholder="Kwame"
               className="w-full px-3.5 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600 transition-all"
               autoFocus
             />
-            {errors.firstName && (
-              <p className="mt-1 text-xs text-red-600">
-                {errors.firstName.message}
-              </p>
-            )}
           </div>
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Last name
             </label>
             <input
-              {...register("lastName")}
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
               placeholder="Essien"
               className="w-full px-3.5 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600 transition-all"
             />
-            {errors.lastName && (
-              <p className="mt-1 text-xs text-red-600">
-                {errors.lastName.message}
-              </p>
-            )}
           </div>
         </div>
 
@@ -147,13 +156,12 @@ export function AddEmployeeModal({
             Email address
           </label>
           <input
-            {...register("email")}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="kwame@techcorp.com"
             className="w-full px-3.5 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600 transition-all"
           />
-          {errors.email && (
-            <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>
-          )}
         </div>
 
         <div>
@@ -161,13 +169,12 @@ export function AddEmployeeModal({
             Phone number
           </label>
           <input
-            {...register("phone")}
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
             placeholder="+233 24 000 0000"
             className="w-full px-3.5 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600 transition-all"
           />
-          {errors.phone && (
-            <p className="mt-1 text-xs text-red-600">{errors.phone.message}</p>
-          )}
         </div>
 
         <div>
@@ -175,7 +182,9 @@ export function AddEmployeeModal({
             Job role
           </label>
           <input
-            {...register("role")}
+            type="text"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
             placeholder="Software Engineer"
             className="w-full px-3.5 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600 transition-all"
           />
@@ -190,27 +199,30 @@ export function AddEmployeeModal({
               GHS
             </span>
             <input
-              {...register("salary")}
+              type="text"
+              value={salary}
+              onChange={(e) => setSalary(e.target.value)}
               placeholder="5,000"
               className="w-full pl-12 pr-4 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600 transition-all"
             />
           </div>
-          {errors.salary && (
-            <p className="mt-1 text-xs text-red-600">{errors.salary.message}</p>
-          )}
         </div>
 
-        <label className="flex items-center gap-2.5 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            {...register("sendInvite")}
-            className="size-4 rounded border-gray-300 accent-green-600 cursor-pointer"
-          />
-          <span className="text-sm text-gray-900">
-            Send their login credentials and app invitation now
-          </span>
-        </label>
-      </form>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Status
+          </label>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value as any)}
+            className="w-full px-3.5 py-2.5 text-sm text-gray-900 border border-gray-200 rounded-xl bg-white placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600 transition-all"
+          >
+            <option value="Active">Active</option>
+            <option value="Pending">Pending</option>
+            <option value="Suspended">Suspended</option>
+          </select>
+        </div>
+      </div>
     </Modal>
   );
 }

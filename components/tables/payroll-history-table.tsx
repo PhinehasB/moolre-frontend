@@ -1,24 +1,52 @@
 "use client";
 
 import { PayrollRun } from "@/interfaces/tables.interface";
-import { PAYROLL_HISTORY } from "@/utils/mock";
 import { DataTable } from "@/components/ui/data-table";
 import { TablePagination } from "@/components/ui/table-pagination";
+import { getApiError } from "@/hooks/use-auth";
+import { downloadAuthenticatedFile } from "@/lib/download";
+import { formatCurrency } from "@/lib/format";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
-import { Download } from "lucide-react";
+import { useReconcilePayroll } from "@/hooks/use-dashboard";
+import { Download, RefreshCw } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 interface PayrollHistoryTableProps {
   data?: PayrollRun[];
+  isLoading?: boolean;
 }
 
 export function PayrollHistoryTable({
-  data = PAYROLL_HISTORY,
+  data = [],
+  isLoading = false,
 }: PayrollHistoryTableProps) {
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
   });
+
+  const reconcilePayroll = useReconcilePayroll();
+
+  const handleReconcile = async (run: PayrollRun) => {
+    try {
+      await reconcilePayroll.mutateAsync({ runId: run.id });
+      toast.success("Payroll run reconciled successfully.");
+    } catch (error) {
+      toast.error(getApiError(error));
+    }
+  };
+
+  const handleDownload = async (run: PayrollRun) => {
+    try {
+      await downloadAuthenticatedFile(
+        `/api/v1/payroll/runs/${run.id}/report`,
+        `${run.period.replace(/\s+/g, "-").toLowerCase()}-payroll.csv`
+      );
+    } catch (error) {
+      toast.error(getApiError(error));
+    }
+  };
 
   const columns = useMemo<ColumnDef<PayrollRun, unknown>[]>(
     () => [
@@ -35,9 +63,7 @@ export function PayrollHistoryTable({
         accessorKey: "runDate",
         header: "RUN DATE",
         cell: ({ row }) => (
-          <span className="text-sm text-gray-500">
-            {row.original.runDate}
-          </span>
+          <span className="text-sm text-gray-500">{row.original.runDate}</span>
         ),
       },
       {
@@ -75,29 +101,41 @@ export function PayrollHistoryTable({
         accessorKey: "totalPaid",
         header: "TOTAL PAID",
         cell: ({ row }) => (
-          <span className="text-sm font-bold text-gray-900 whitespace-nowrap">
-            GHS {row.original.totalPaid.toLocaleString()}
+          <span className="text-sm font-bold text-gray-900 whitespace-nowrap font-space-grotesk">
+            {formatCurrency(row.original.totalPaid)}
           </span>
         ),
       },
       {
-        id: "download",
+        id: "actions",
         header: "",
-        cell: ({ row }) => (
-          <button
-            onClick={() =>
-              alert(`Downloading receipt for ${row.original.period}...`)
-            }
-            className="flex items-center justify-center size-9 rounded-lg text-gray-400 hover:text-green-600 hover:bg-gray-100 transition-colors"
-            aria-label={`Download ${row.original.period} receipt`}
-          >
-            <Download className="size-4" />
-          </button>
-        ),
-        size: 56,
+        cell: ({ row }) => {
+          if (row.original.status === "PROCESSING") {
+            return (
+              <button
+                onClick={() => handleReconcile(row.original)}
+                disabled={reconcilePayroll.isPending}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-600 bg-amber-50 hover:bg-amber-100 transition-colors disabled:opacity-50"
+              >
+                <RefreshCw className={`size-3.5 ${reconcilePayroll.isPending ? "animate-spin" : ""}`} />
+                Reconcile
+              </button>
+            );
+          }
+          return (
+            <button
+              onClick={() => handleDownload(row.original)}
+              className="flex items-center justify-center size-9 rounded-lg text-gray-400 hover:text-green-600 hover:bg-gray-100 transition-colors"
+              aria-label={`Download ${row.original.period} receipt`}
+            >
+              <Download className="size-4" />
+            </button>
+          );
+        },
+        size: 90,
       },
     ],
-    []
+    [reconcilePayroll.isPending]
   );
 
   const { table, tableElement } = DataTable<PayrollRun>({
@@ -106,19 +144,17 @@ export function PayrollHistoryTable({
     pagination,
     onPaginationChange: setPagination,
     getRowId: (row) => row.id,
-    emptyMessage: "No payroll history yet.",
+    emptyMessage: isLoading ? "Loading payroll history..." : "No payroll history yet.",
   });
 
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="text-lg font-bold text-gray-900 select-none">
-        Payroll history
-      </h3>
+      <h3 className="text-lg font-bold text-gray-900 select-none">Payroll history</h3>
 
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
         {tableElement}
 
-        {data.length > 10 && (
+        {data.length > pagination.pageSize && (
           <TablePagination
             table={table}
             totalItems={data.length}

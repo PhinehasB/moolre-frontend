@@ -4,14 +4,23 @@ import { Input } from "@/components/ui/input";
 import { FieldError, inputCls } from "@/utils/form";
 import { signInSchema, type SignInValues } from "@/utils/validators";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, Suspense } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { useSignIn, getApiError } from "@/hooks/use-auth";
 
-export default function SignInPage() {
+function SignInForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
+
+  const verified = searchParams.get("verified");
+  const from = searchParams.get("from") ?? "/dashboard";
+
+  const signIn = useSignIn();
 
   const {
     register,
@@ -22,13 +31,37 @@ export default function SignInPage() {
     defaultValues: { email: "", password: "", keepSigned: false },
   });
 
-  const onSubmit = (data: SignInValues) => {
-    // TODO: wire up auth
-    redirect("/dashboard");
+  const onSubmit = async (data: SignInValues) => {
+    try {
+      await signIn.mutateAsync({
+        email: data.email,
+        password: data.password,
+        rememberMe: !!data.keepSigned,
+      });
+      router.push(from);
+    } catch (err) {
+      toast.error(getApiError(err));
+    }
   };
+
+  const isPending = isSubmitting || signIn.isPending;
 
   return (
     <div className="w-full max-w-sm">
+      {/* Email-verified banner */}
+      {verified === "success" && (
+        <div className="flex items-center gap-2 mb-5 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-800">
+          <CheckCircle className="size-4 shrink-0 text-green-600" />
+          Email verified! You can now sign in.
+        </div>
+      )}
+      {verified === "invalid" && (
+        <div className="flex items-center gap-2 mb-5 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-800">
+          <XCircle className="size-4 shrink-0 text-red-500" />
+          Verification link is invalid or expired.
+        </div>
+      )}
+
       {/* Header */}
       <p className="text-primary-600 text-xs font-semibold tracking-[0.16em] uppercase mb-2">
         Business Dashboard
@@ -38,17 +71,10 @@ export default function SignInPage() {
         Sign in to manage payroll, your team, and your Moolre wallet.
       </p>
 
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        noValidate
-        className="flex flex-col gap-5"
-      >
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-5">
         {/* Email */}
         <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="signin-email"
-            className="text-gray-700 text-sm font-medium"
-          >
+          <label htmlFor="signin-email" className="text-gray-700 text-sm font-medium">
             Work email
           </label>
           <Input
@@ -65,10 +91,7 @@ export default function SignInPage() {
 
         {/* Password */}
         <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="signin-password"
-            className="text-gray-700 text-sm font-medium"
-          >
+          <label htmlFor="signin-password" className="text-gray-700 text-sm font-medium">
             Password
           </label>
           <div className="relative">
@@ -85,13 +108,9 @@ export default function SignInPage() {
               type="button"
               aria-label={showPassword ? "Hide password" : "Show password"}
               onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-navy-400 hover:text-navy-600 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
             >
-              {showPassword ? (
-                <EyeOff className="size-4" />
-              ) : (
-                <Eye className="size-4" />
-              )}
+              {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
             </button>
           </div>
           <FieldError message={errors.password?.message} />
@@ -99,10 +118,7 @@ export default function SignInPage() {
 
         {/* Keep signed in + Forgot */}
         <div className="flex items-center justify-between">
-          <label
-            htmlFor="signin-keep"
-            className="flex items-center gap-2 cursor-pointer select-none"
-          >
+          <label htmlFor="signin-keep" className="flex items-center gap-2 cursor-pointer select-none">
             <input
               id="signin-keep"
               type="checkbox"
@@ -123,10 +139,10 @@ export default function SignInPage() {
         <button
           id="signin-submit"
           type="submit"
-          disabled={isSubmitting}
+          disabled={isPending}
           className="mt-1 w-full rounded-lg bg-green-600 py-2.5 text-sm font-semibold text-white hover:bg-green-700 active:scale-[0.985] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/40 disabled:opacity-60 disabled:pointer-events-none"
         >
-          {isSubmitting ? "Signing in…" : "Sign in"}
+          {isPending ? "Signing in…" : "Sign in"}
         </button>
       </form>
 
@@ -141,5 +157,13 @@ export default function SignInPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense>
+      <SignInForm />
+    </Suspense>
   );
 }

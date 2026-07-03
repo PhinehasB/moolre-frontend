@@ -20,8 +20,27 @@ const spaceGrotesk = Space_Grotesk({
 
 
 export const metadata: Metadata = {
-  title: "Klare | Business Dashboard",
-  description: "Manage payroll, your team, and your Moolre wallet.",
+  title: {
+    template: "%s | Klare",
+    default: "Klare: Payroll for pan-African businesses",
+  },
+  description:
+    "Manage payroll, your team, and your Moolre wallet.",
+  metadataBase: new URL("https://www.klare.app/"),
+
+  icons: {
+    icon: "/app/favicon.ico",
+    shortcut: "/app/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+  openGraph: {
+    title: "Klare: Payroll for pan-African businesses",
+    description:
+      "Manage payroll, your team, and your Moolre wallet",
+    type: "website",
+    siteName: "Klare",
+    images: ["OG_IMAGE.png"],
+  },
 };
 
 export default function RootLayout({

@@ -26,7 +26,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-// ─── Skeleton ────────────────────────────────────────────────────────────────
+// Skeleton 
 
 function WalletCardSkeleton() {
   return (
@@ -58,7 +58,7 @@ function BankCardSkeleton() {
   );
 }
 
-// ─── Status Badge ─────────────────────────────────────────────────────────────
+// Status Badge 
 
 function StatusBadge({ status }: { status: string }) {
   const normalized = status?.toLowerCase();
@@ -85,7 +85,7 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// Page 
 
 export default function WalletPage() {
   const { data, isLoading } = useWallet();
@@ -111,7 +111,7 @@ export default function WalletPage() {
   const balanceParts = formatCurrencyParts(toNumber(wallet?.balance));
   const pendingAmount = toNumber(wallet?.pending);
 
-  // ─── Columns ───────────────────────────────────────────────────────────────
+  // Columns 
   const columns = useMemo<ColumnDef<Transaction, unknown>[]>(
     () => [
       {
@@ -151,9 +151,8 @@ export default function WalletPage() {
           const isInflow = row.original.type === "inflow";
           return (
             <span
-              className={`block whitespace-nowrap text-right text-sm font-bold font-space-grotesk ${
-                isInflow ? "text-green-600" : "text-gray-900"
-              }`}
+              className={`block whitespace-nowrap text-right text-sm font-bold font-space-grotesk ${isInflow ? "text-green-600" : "text-gray-900"
+                }`}
             >
               {isInflow ? "+" : "−"}
               {formatCurrency(row.original.amount, currency)}
@@ -173,16 +172,16 @@ export default function WalletPage() {
     emptyMessage: isLoading ? "Loading ledger…" : "No wallet transactions yet.",
   });
 
-  // ─── Bank details ──────────────────────────────────────────────────────────
+  // Bank details 
   const bankDetails = wallet?.bankTopUp
     ? [
-        { label: "Account name", value: wallet.bankTopUp.accountName ?? "—" },
-        { label: "Account number", value: wallet.bankTopUp.accountNumber ?? "—" },
-        { label: "Bank", value: wallet.bankTopUp.bankName ?? "—" },
-      ]
+      { label: "Account name", value: wallet.bankTopUp.accountName ?? "—" },
+      { label: "Account number", value: wallet.bankTopUp.accountNumber ?? "—" },
+      { label: "Bank", value: wallet.bankTopUp.bankName ?? "—" },
+    ]
     : [];
 
-  // ─── Handlers ──────────────────────────────────────────────────────────────
+  // Handlers
   const resetFundingState = () => {
     setFundingRef(null);
     setFundingStatus(undefined);
@@ -243,13 +242,13 @@ export default function WalletPage() {
     }
   };
 
-  // ─── Render ────────────────────────────────────────────────────────────────
+  // Render
   return (
     <>
       <div className="flex w-full max-w-300 flex-col gap-6 animate-in fade-in duration-300">
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.4fr_1fr]">
 
-          {/* ── Wallet balance card ── */}
+          {/* Wallet balance card */}
           {isLoading ? (
             <WalletCardSkeleton />
           ) : (
@@ -275,7 +274,7 @@ export default function WalletPage() {
                 {pendingAmount > 0 && (
                   <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80">
                     <TrendingUp className="size-3" />
-                    <span className="font-space-grotesk">{formatCurrency(pendingAmount, currency)}</span> pending
+                    {formatCurrency(pendingAmount, currency)} pending
                   </div>
                 )}
 
@@ -299,7 +298,7 @@ export default function WalletPage() {
             </section>
           )}
 
-          {/* ── Bank top-up card ── */}
+          {/* Bank top-up card */}
           {isLoading ? (
             <BankCardSkeleton />
           ) : (
@@ -351,7 +350,7 @@ export default function WalletPage() {
           )}
         </div>
 
-        {/* ── Ledger ── */}
+        {/* Ledger */}
         <section className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-4">
             <h2 className="text-lg font-bold text-gray-900">Wallet ledger</h2>
@@ -370,7 +369,7 @@ export default function WalletPage() {
         </section>
       </div>
 
-      {/* ── Fund wallet modal ── */}
+      {/* Fund wallet modal  */}
       <FundWalletModal
         isOpen={isFundWalletOpen}
         onClose={() => {

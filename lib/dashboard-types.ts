@@ -242,4 +242,8 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
+export interface MessageResponse {
+  message: string;
+}
+
 export type DashboardApiResponse<T> = ApiResponse<T>;

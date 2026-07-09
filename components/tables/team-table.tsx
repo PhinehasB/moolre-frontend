@@ -1,11 +1,19 @@
 "use client";
 
 import { DataTable } from "@/components/ui/data-table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TablePagination } from "@/components/ui/table-pagination";
 import { getApiError } from "@/hooks/use-auth";
 import {
   useCreateEmployee,
+  useDeleteEmployee,
   useEmployeeStats,
   useEmployees,
   useImportEmployees,
@@ -26,18 +34,22 @@ import {
   ArrowRight,
   Check,
   Circle,
-  Edit,
+  Eye,
   FileSpreadsheet,
-  Phone,
+  MoreHorizontal,
+  Pencil,
   Plus,
   Search,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AddEmployeeModal } from "../modals/add-employee-modal";
+import { ConfirmDeleteDialog } from "../modals/confirm-delete-dialog";
 import { EditEmployeeModal } from "../modals/edit-employee-modal";
 import { ImportCSVModal } from "../modals/import-csv-modal";
+import { ViewEmployeeDetailsModal } from "../modals/view-employee-details-modal";
 
 function getInitials(name: string) {
   return name
@@ -72,6 +84,8 @@ export function TeamTable({
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [viewingEmployee, setViewingEmployee] = useState<Employee | null>(null);
+  const [deletingEmployee, setDeletingEmployee] = useState<Employee | null>(null);
 
   const employeesQuery = useEmployees(
     {
@@ -89,6 +103,7 @@ export function TeamTable({
   const createEmployee = useCreateEmployee();
   const importEmployees = useImportEmployees();
   const updateEmployee = useUpdateEmployee();
+  const deleteEmployee = useDeleteEmployee();
 
   const employees = useMemo(() => {
     if (isControlled) return controlledEmployees;
@@ -125,47 +140,47 @@ export function TeamTable({
     () => [
       ...(!showViewAll
         ? [
-            {
-              id: "select",
-              header: ({
-                table,
-              }: {
-                table: {
-                  getIsAllPageRowsSelected: () => boolean;
-                  getToggleAllPageRowsSelectedHandler: () => (
-                    event: unknown,
-                  ) => void;
-                };
-              }) => (
-                <input
-                  type="checkbox"
-                  checked={table.getIsAllPageRowsSelected()}
-                  onChange={table.getToggleAllPageRowsSelectedHandler()}
-                  className="size-4 rounded border-gray-300 text-green-600 accent-green-600 cursor-pointer"
-                  aria-label="Select all"
-                />
-              ),
-              cell: ({
-                row,
-              }: {
-                row: {
-                  getIsSelected: () => boolean;
-                  getToggleSelectedHandler: () => (event: unknown) => void;
-                  original: Employee;
-                };
-              }) => (
-                <input
-                  type="checkbox"
-                  checked={row.getIsSelected()}
-                  onChange={row.getToggleSelectedHandler()}
-                  className="size-4 rounded border-gray-300 text-green-600 accent-green-600 cursor-pointer"
-                  aria-label={`Select ${row.original.name}`}
-                />
-              ),
-              size: 48,
-              enableSorting: false,
-            } as ColumnDef<Employee, unknown>,
-          ]
+          {
+            id: "select",
+            header: ({
+              table,
+            }: {
+              table: {
+                getIsAllPageRowsSelected: () => boolean;
+                getToggleAllPageRowsSelectedHandler: () => (
+                  event: unknown,
+                ) => void;
+              };
+            }) => (
+              <input
+                type="checkbox"
+                checked={table.getIsAllPageRowsSelected()}
+                onChange={table.getToggleAllPageRowsSelectedHandler()}
+                className="size-4 rounded border-gray-300 text-green-600 accent-green-600 cursor-pointer"
+                aria-label="Select all"
+              />
+            ),
+            cell: ({
+              row,
+            }: {
+              row: {
+                getIsSelected: () => boolean;
+                getToggleSelectedHandler: () => (event: unknown) => void;
+                original: Employee;
+              };
+            }) => (
+              <input
+                type="checkbox"
+                checked={row.getIsSelected()}
+                onChange={row.getToggleSelectedHandler()}
+                className="size-4 rounded border-gray-300 text-green-600 accent-green-600 cursor-pointer"
+                aria-label={`Select ${row.original.name}`}
+              />
+            ),
+            size: 48,
+            enableSorting: false,
+          } as ColumnDef<Employee, unknown>,
+        ]
         : []),
       {
         accessorKey: "employee",
@@ -257,28 +272,93 @@ export function TeamTable({
       {
         id: "actions",
         header: "",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                setEditingEmployee(row.original);
-                setIsEditModalOpen(true);
-              }}
-              aria-label={`Edit ${row.original.name}`}
-              className="flex items-center justify-center size-9 rounded-lg text-gray-400 hover:text-green-600 hover:bg-gray-100 transition-colors"
-            >
-              <Edit className="size-4" />
-            </button>
-            <a
-              href={`tel:${row.original.phone.replace(/\s/g, "")}`}
-              className="flex items-center justify-center size-9 rounded-lg text-gray-400 hover:text-green-600 hover:bg-gray-100 transition-colors"
-              aria-label={`Call ${row.original.name}`}
-            >
-              <Phone className="size-4" />
-            </a>
-          </div>
-        ),
-        size: 56,
+        cell: ({ row }) => {
+          const actionItems: Array<
+            | { type: "separator" }
+            | {
+              type: "item";
+              label: string;
+              icon: React.ElementType;
+              onClick: () => void;
+              disabled?: boolean;
+              danger?: boolean;
+            }
+          > = [
+              {
+                type: "item",
+                label: "View",
+                icon: Eye,
+                onClick: () => {
+                  setViewingEmployee(row.original);
+                },
+              },
+              {
+                type: "item",
+                label: "Edit",
+                icon: Pencil,
+                onClick: () => {
+                  setEditingEmployee(row.original);
+                  setIsEditModalOpen(true);
+                },
+              },
+              { type: "separator" },
+              {
+                type: "item",
+                label: "Delete",
+                icon: Trash2,
+                danger: true,
+                disabled: deleteEmployee.isPending,
+                onClick: () => {
+                  setDeletingEmployee(row.original);
+                },
+              },
+            ];
+
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="border-none" asChild>
+                <button
+                  aria-label={`Actions for ${row.original.name}`}
+                  className="flex items-center justify-center size-8 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors outline-none focus:outline-none"
+                >
+                  <MoreHorizontal className="size-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                sideOffset={6}
+                className="w-40 p-1 rounded-xl border border-gray-100 shadow-xl bg-white"
+              >
+                {actionItems.map((item, i) => {
+                  if (item.type === "separator") {
+                    return (
+                      <DropdownMenuSeparator
+                        key={`sep-${i}`}
+                        className="my-1 bg-gray-100"
+                      />
+                    );
+                  }
+                  const Icon = item.icon;
+                  return (
+                    <DropdownMenuItem
+                      key={item.label}
+                      onClick={item.onClick}
+                      disabled={item.disabled}
+                      className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm cursor-pointer select-none outline-none transition-colors ${item.danger
+                        ? "group text-gray-900 data-[highlighted]:text-red-600 data-[highlighted]:bg-red-50"
+                        : "group text-gray-900 data-[highlighted]:text-green-700 data-[highlighted]:bg-green-50"
+                        }`}
+                    >
+                      <Icon className="size-3.5 shrink-0 text-gray-400 group-data-[highlighted]:text-[inherit] transition-colors" />
+                      {item.label}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
+        size: 52,
       },
     ],
     [showViewAll],
@@ -354,9 +434,9 @@ export function TeamTable({
     ...(showViewAll
       ? {}
       : {
-          rowSelection,
-          onRowSelectionChange: setRowSelection,
-        }),
+        rowSelection,
+        onRowSelectionChange: setRowSelection,
+      }),
     getRowId: (row) => row.id,
     emptyMessage: isLoading
       ? "Loading team members..."
@@ -436,11 +516,10 @@ export function TeamTable({
                         setStatusFilter(tab);
                         setPagination((prev) => ({ ...prev, pageIndex: 0 }));
                       }}
-                      className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all duration-200 ${
-                        isActive
-                          ? "bg-black text-white shadow-sm"
-                          : "text-gray-500 hover:text-gray-900"
-                      }`}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all duration-200 ${isActive
+                        ? "bg-black text-white shadow-sm"
+                        : "text-gray-500 hover:text-gray-900"
+                        }`}
                     >
                       {tab}
                     </button>
@@ -524,7 +603,18 @@ export function TeamTable({
             toast.error(getApiError(error));
           }
         }}
+        onDelete={async (employeeId) => {
+          try {
+            await deleteEmployee.mutateAsync(employeeId);
+            setIsEditModalOpen(false);
+            setEditingEmployee(null);
+            toast.success(`${editingEmployee?.name ?? "Employee"} has been removed.`);
+          } catch (error) {
+            toast.error(getApiError(error));
+          }
+        }}
         isSubmitting={updateEmployee.isPending}
+        isDeleting={deleteEmployee.isPending}
       />
       <ImportCSVModal
         isOpen={isImportModalOpen}
@@ -532,6 +622,29 @@ export function TeamTable({
         onImport={handleImportCSV}
         onDownloadTemplate={handleDownloadTemplate}
         isSubmitting={importEmployees.isPending}
+      />
+      <ViewEmployeeDetailsModal
+        isOpen={!!viewingEmployee}
+        onClose={() => setViewingEmployee(null)}
+        employee={viewingEmployee}
+      />
+      <ConfirmDeleteDialog
+        open={!!deletingEmployee}
+        onOpenChange={(open) => {
+          if (!open) setDeletingEmployee(null);
+        }}
+        name={deletingEmployee?.name ?? ""}
+        isDeleting={deleteEmployee.isPending}
+        onConfirm={async () => {
+          if (!deletingEmployee) return;
+          try {
+            await deleteEmployee.mutateAsync(deletingEmployee.id);
+            toast.success(`${deletingEmployee.name} has been removed.`);
+            setDeletingEmployee(null);
+          } catch (error) {
+            toast.error(getApiError(error));
+          }
+        }}
       />
     </div>
   );

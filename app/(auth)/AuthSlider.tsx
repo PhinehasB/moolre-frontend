@@ -59,9 +59,8 @@ export default function AuthSlider() {
           return (
             <div
               key={index}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                index === currentIndex ? "opacity-100 z-0" : "opacity-0 -z-10"
-              }`}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentIndex ? "opacity-100 z-0" : "opacity-0 -z-10"
+                }`}
               style={{
                 background:
                   "linear-gradient(to bottom, #116851 0%, #208764 65%, #dcb054 100%)",
@@ -81,9 +80,8 @@ export default function AuthSlider() {
           return (
             <div
               key={index}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                index === currentIndex ? "opacity-100 z-0" : "opacity-0 -z-10"
-              }`}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentIndex ? "opacity-100 z-0" : "opacity-0 -z-10"
+                }`}
             >
               <Image
                 src={slide.image || ""}
@@ -121,32 +119,28 @@ export default function AuthSlider() {
           return (
             <div
               key={index}
-              className={`w-full transition-all duration-700 ease-in-out ${
-                index === currentIndex
-                  ? "opacity-100 translate-y-0 relative"
-                  : "opacity-0 translate-y-4 absolute inset-x-0 bottom-0 pointer-events-none"
-              } ${
-                isGradient
+              className={`w-full transition-all duration-700 ease-in-out ${index === currentIndex
+                ? "opacity-100 translate-y-0 relative"
+                : "opacity-0 translate-y-4 absolute inset-x-0 bottom-0 pointer-events-none"
+                } ${isGradient
                   ? "my-auto self-start text-left max-w-xl"
                   : "mt-auto self-end ml-auto text-left max-w-[85%] lg:max-w-[70%] pb-4"
-              }`}
+                }`}
             >
               <div>
                 <p
-                  className={`text-xs font-semibold tracking-[0.18em] uppercase mb-3 ${
-                    slide.type === "gradient"
-                      ? "text-white/60"
-                      : "text-white/75"
-                  }`}
+                  className={`text-xs font-semibold tracking-[0.18em] uppercase mb-3 ${slide.type === "gradient"
+                    ? "text-white/60"
+                    : "text-white/75"
+                    }`}
                 >
                   {slide.tag}
                 </p>
                 <h1
-                  className={`text-white tracking-tight ${
-                    slide.type === "gradient"
-                      ? "text-4xl sm:text-5xl lg:text-[54px] font-medium leading-[1.15] font-space-grotesk"
-                      : "text-2xl font-medium leading-tight"
-                  }`}
+                  className={`text-white tracking-tight ${slide.type === "gradient"
+                    ? "text-4xl sm:text-5xl lg:text-[54px] font-medium leading-[1.15] font-space-grotesk"
+                    : "text-2xl font-medium leading-tight"
+                    }`}
                 >
                   {slide.title}
                 </h1>

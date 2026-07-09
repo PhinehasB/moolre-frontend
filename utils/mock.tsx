@@ -127,22 +127,28 @@ export const SLIDES = [
   },
   {
     type: "image",
-    image: "/assets/slide_office.png",
+    image: "/assets/images/auth1.png",
     tag: "MOVE MONEY WITH TOTAL CONFIDENCE",
     title:
       "Secure, compliant, and reliable financial infrastructure for modern teams.",
   },
   {
     type: "image",
-    image: "/assets/slide_atm.png",
+    image: "/assets/images/auth2.png",
     tag: "POWERING THE FUTURE OF DIGITAL PAYMENTS.",
     title: "Connecting digital wallets to real-world, everyday human utility.",
   },
   {
     type: "image",
-    image: "/assets/slide_building.png",
+    image: "/assets/images/auth3.png",
     tag: "PAY YOUR TEAM IN ONE CLICK.",
     title: "We handle the complexity so you can focus on building",
+  },
+  {
+    type: "image",
+    image: "/assets/images/auth4.png",
+    tag: "PAY YOUR TEAM IN ONE CLICK.",
+    title: "Your money, already sorted before it even hits your phone",
   },
 ];
 

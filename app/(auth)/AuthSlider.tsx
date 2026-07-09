@@ -102,12 +102,12 @@ export default function AuthSlider() {
       {/* Logo */}
       <div className="relative z-20">
         <Image
-          src="/assets/logo.png"
+          src="/assets/KLARE.png"
           alt="Klare by Moolre"
           width={100}
           height={32}
           style={{ width: "100px", height: "auto" }}
-          className="object-contain brightness-200 invert"
+          className="object-contain"
           priority
         />
       </div>

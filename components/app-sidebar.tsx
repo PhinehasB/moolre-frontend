@@ -14,6 +14,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { SIDEBAR_GROUPS_LINKS } from "@/utils/mock";
@@ -21,11 +22,13 @@ import Link from "next/link";
 import { useAuthStore } from "@/store/auth-store";
 import { useAuthInitials } from "@/hooks/use-auth";
 import { LogoutDialog } from "@/components/modals/logout-dialog";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname() || "";
-  const { setOpenMobile, isMobile } = useSidebar();
+  const { toggleSidebar, setOpenMobile, isMobile } = useSidebar();
   const { user, company } = useAuthStore();
   const initials = useAuthInitials();
 
@@ -39,21 +42,54 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   return (
-    <Sidebar variant="inset" className="bg-sidebar" {...props}>
-      {/* Header / Logo */}
-      <SidebarHeader className="bg-sidebar p-4">
+    <Sidebar collapsible="icon" variant="inset" className="bg-sidebar" {...props}>
+      <SidebarHeader className="bg-sidebar p-4 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:items-center">
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="flex items-center gap-3">
-              {/* K Logo square */}
-              <div className="flex aspect-square size-9 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground font-bold text-lg select-none shrink-0">
-                K
+
+            {/* Expanded Header */}
+            <div className="flex items-center justify-between w-full h-9 group-data-[collapsible=icon]:hidden">
+              <div className="flex items-center gap-3 overflow-hidden">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground font-bold text-base select-none shrink-0">
+                  K
+                </div>
+                <span className="font-bold text-gray-900 text-lg tracking-tight truncate">
+                  Klare
+                </span>
               </div>
-              {/* Brand Name */}
-              <span className="font-semibold text-gray-900 text-base tracking-tight truncate group-data-[state=collapsed]:hidden">
-                Klare
-              </span>
+              <button
+                onClick={toggleSidebar}
+                className="flex size-9 shrink-0 items-center justify-center rounded-lg text-primary hover:bg-green-50 transition-colors"
+                aria-label="Collapse Sidebar"
+                title="Collapse Sidebar"
+              >
+                <PanelLeftClose className="size-5" />
+              </button>
             </div>
+
+            {/* Collapsed Header */}
+            <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center w-full h-9">
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={toggleSidebar}
+                      className="group/toggle flex aspect-square size-9 items-center justify-center rounded-full hover:bg-green-50 transition-colors"
+                      aria-label="Open Sidebar"
+                    >
+                      <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground font-bold text-base select-none shrink-0 group-hover/toggle:hidden">
+                        K
+                      </div>
+                      <PanelLeftOpen className="size-5 text-primary hidden group-hover/toggle:block" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" sideOffset={10} className="bg-primary text-primary-foreground font-medium text-xs border-0">
+                    Open sidebar
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
@@ -117,10 +153,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               {/* User Info */}
               <div className="grid flex-1 text-left text-sm leading-tight group-data-[state=collapsed]:hidden overflow-hidden">
                 <span className="truncate font-semibold text-gray-900">
-                  {fullName || "—"}
+                  {fullName || ""}
                 </span>
                 <span className="truncate text-xs text-gray-500">
-                  {company?.name || "—"}
+                  {company?.name || ""}
                 </span>
               </div>
               <LogoutDialog />

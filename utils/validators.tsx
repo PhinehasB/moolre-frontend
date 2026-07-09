@@ -14,7 +14,7 @@ const phoneSchema = z
   .min(1, "Phone number is required")
   .regex(/^\+?[0-9\s\-()]{7,20}$/, "Enter a valid phone number");
 
-// ── Sign-in ───────────────────────────────────────────────────────────────────
+// Sign-in 
 
 export const signInSchema = z.object({
   email: z
@@ -27,7 +27,7 @@ export const signInSchema = z.object({
 
 export type SignInValues = z.infer<typeof signInSchema>;
 
-// ── Sign-up step 1: Company ───────────────────────────────────────────────────
+// Sign-up step 1: Company 
 
 export const INDUSTRY_OPTIONS = [
   { value: "TECHNOLOGY", label: "Technology" },
@@ -60,7 +60,7 @@ export const companySchema = z.object({
 
 export type CompanyValues = z.infer<typeof companySchema>;
 
-// ── Sign-up step 2: Administrator ─────────────────────────────────────────────
+// Sign-up step 2: Administrator 
 
 export const adminSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -75,7 +75,7 @@ export const adminSchema = z.object({
 
 export type AdminValues = z.infer<typeof adminSchema>;
 
-// ── Forgot password ───────────────────────────────────────────────────────────
+// Forgot password 
 
 export const forgotPasswordSchema = z.object({
   email: z
@@ -86,7 +86,7 @@ export const forgotPasswordSchema = z.object({
 
 export type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
 
-// ── Reset password ────────────────────────────────────────────────────────────
+// Reset password 
 
 export const resetPasswordSchema = z
   .object({

@@ -12,6 +12,7 @@ import type {
   FundingResponse,
   ImportResultResponse,
   LedgerEntry,
+  MessageResponse,
   PageResponse,
   PayrollInitiationResponse,
   PayrollOverviewResponse,
@@ -31,6 +32,7 @@ import { AxiosError } from "axios";
 export const dashboardKeys = {
   summary: ["dashboard", "summary"] as const,
   employees: (params: EmployeesQueryParams) => ["employees", params] as const,
+  employee: (id: string) => ["employees", id] as const,
   employeeStats: ["employees", "stats"] as const,
   wallet: ["wallet"] as const,
   transactions: (params: TransactionsQueryParams) =>
@@ -159,6 +161,32 @@ export function useUpdateEmployee() {
         `/api/v1/employees/${employeeId}`,
         payload,
         idempotentRequestConfig(),
+      );
+      return data;
+    },
+    onSuccess: () => invalidateDashboardData(queryClient),
+  });
+}
+
+export function useGetEmployee(employeeId: string | null) {
+  return useQuery<ApiResponse<EmployeeResponse>, AxiosError>({
+    queryKey: dashboardKeys.employee(employeeId ?? ""),
+    queryFn: async () => {
+      const { data } = await api.get<ApiResponse<EmployeeResponse>>(
+        `/api/v1/employees/${employeeId}`,
+      );
+      return data;
+    },
+    enabled: !!employeeId,
+  });
+}
+
+export function useDeleteEmployee() {
+  const queryClient = useQueryClient();
+  return useMutation<ApiResponse<MessageResponse>, AxiosError, string>({
+    mutationFn: async (employeeId) => {
+      const { data } = await api.delete<ApiResponse<MessageResponse>>(
+        `/api/v1/employees/${employeeId}`,
       );
       return data;
     },

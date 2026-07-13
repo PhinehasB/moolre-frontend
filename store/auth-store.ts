@@ -8,6 +8,7 @@ interface AuthState {
   user: AuthUserResponse | null;
   company: CompanyResponse | null;
   isAuthenticated: boolean;
+  hasHydrated: boolean;
 }
 
 interface AuthActions {
@@ -19,6 +20,7 @@ interface AuthActions {
   }) => void;
   setUser: (user: AuthUserResponse, company: CompanyResponse) => void;
   clearAuth: () => void;
+  setHasHydrated: (value: boolean) => void;
 }
 
 const initialState: AuthState = {
@@ -27,6 +29,7 @@ const initialState: AuthState = {
   user: null,
   company: null,
   isAuthenticated: false,
+  hasHydrated: false,
 };
 
 /** Sync a lightweight cookie so Next.js middleware can detect auth state. */
@@ -54,8 +57,10 @@ export const useAuthStore = create<AuthState & AuthActions>()(
 
       clearAuth: () => {
         syncAuthCookie(false);
-        set(initialState);
+        set({ ...initialState, hasHydrated: true });
       },
+
+      setHasHydrated: (value) => set({ hasHydrated: value }),
     }),
     {
       name: "klare-auth",
@@ -72,6 +77,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         if (state?.isAuthenticated) {
           syncAuthCookie(true);
         }
+        state?.setHasHydrated(true);
       },
     }
   )

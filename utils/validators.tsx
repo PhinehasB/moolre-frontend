@@ -49,11 +49,9 @@ export const companySchema = z.object({
   companyName: z.string().min(2, "Company name must be at least 2 characters"),
   registrationNo: z
     .string()
-    .min(1, "Registration number is required")
-    .regex(
-      /^[A-Z]{2}-\d{3,6}(-\d{3})?$/,
-      "Use format CS-000-000 (e.g. CS-123-456)"
-    ),
+    .trim()
+    .min(4, "Enter your company registration number")
+    .max(20, "Registration number looks too long"),
   industry: z.string().min(1, "Please select an industry"),
   payrollBand: z.string().min(1, "Please select an expected payroll range"),
 });

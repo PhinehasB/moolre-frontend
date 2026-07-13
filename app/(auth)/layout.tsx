@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 
 export const metadata: Metadata = {
-  title: "Moolre | Auth",
-  description: "Sign in or create a company account on Moolre.",
+  title: "Auth",
+  description: "Sign in or create a company account on Klare.",
 };
 
 

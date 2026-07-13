@@ -137,7 +137,7 @@ function StepCompany({
           <Input
             id="reg-no"
             type="text"
-            placeholder="CS-000-000"
+            placeholder="e.g. 10123456789"
             aria-invalid={!!errors.registrationNo}
             className={inputCls}
             {...register("registrationNo")}

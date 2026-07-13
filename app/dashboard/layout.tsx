@@ -7,13 +7,11 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import { useState, useEffect } from "react";
+import { Loader2 } from "lucide-react";
 import { useMe } from "@/hooks/use-auth";
+import { useAuthStore } from "@/store/auth-store";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function DashboardShell({ children }: { children: React.ReactNode }) {
   const { data: meData } = useMe();
   const [mode, setMode] = useState<"live" | "sandbox">("live");
   const [hasNotification, setHasNotification] = useState(true);
@@ -42,4 +40,22 @@ export default function DashboardLayout({
       </SidebarInset>
     </SidebarProvider>
   );
+}
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+
+  if (!hasHydrated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="size-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return <DashboardShell>{children}</DashboardShell>;
 }
